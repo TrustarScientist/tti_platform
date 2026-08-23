@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+
+{% block title %}Login — Trustar Tech Institute{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ── GRADIENT TEXT ── */
+    .gt {
+        background: linear-gradient(135deg, #1A56E8, #7EB8F7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* ── LEFT PANEL SLIDES ── */
+    .bg-slide {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        filter: brightness(.32);
+        transition: opacity 1.8s ease;
+    }
+
+    .bg-slide.active {
+        opacity: 1;
+    }
+
+    .bs1 {
+        background-image: url('https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80');
+    }
+
+    .bs2 {
+        background-image: url('https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=1200&q=80');
+    }
+
+    .bs3 {
+        background-image: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80');
+    }
+
+    /* ── FLOATING LABEL INPUT ── */
+    .field-wrap {
+        position: relative;
+    }
+
+    .field-wrap input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 1.5px solid #dbeafe;
+        border-radius: .875rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: .95rem;
+        color: #111827;
+        background: #fff;
+        outline: none;
+        transition: border-color .25s, box-shadow .25s;
+    }
+
+    .field-wrap input:focus {
+        border-color: #1A56E8;
+        box-shadow: 0 0 0 4px rgba(26, 86, 232, .08);
+    }
+
+    .field-wrap input::placeholder {
+        color: #9ca3af;
+    }
+
+    .field-wrap .f-icon {
+        position: absolute;
+        left: .9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 1.2rem;
+        pointer-events: none;
+        transition: color .25s;
+    }
+
+    .field-wrap input:focus~.f-icon {
+        color: #1A56E8;
+    }
+
+    /* ── PASSWORD TOGGLE ── */
+    .pw-eye {
+        position: absolute;
+        right: .9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: color .2s;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    .pw-eye:hover {
+        color: #1A56E8;
+    }
+
+    /* ── PRIMARY BUTTON ── */
+    .btn-p {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        width: 100%;
+        padding: .95rem;
+        border-radius: 9999px;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: .95rem;
+        background: linear-gradient(135deg, #1A56E8, #0EC4C4);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: transform .25s, box-shadow .25s;
+    }
+
+    .btn-p:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(26, 86, 232, .35);
+    }
+
+    .btn-p:active {
+        transform: translateY(0);
+    }
+
+    /* ── GOOGLE BUTTON ── */
+    .btn-google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .65rem;
+        width: 100%;
+        padding: .9rem;
+        border-radius: 9999px;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        font-size: .92rem;
+        background: #fff;
+        color: #374151;
+        border: 1.5px solid #dbeafe;
+        cursor: pointer;
+        transition: background .2s, border-color .2s, box-shadow .2s, transform .2s;
+    }
+
+    .btn-google:hover {
+        background: #f9fafb;
+        border-color: #7EB8F7;
+        box-shadow: 0 4px 16px rgba(26, 86, 232, .08);
+        transform: translateY(-1px);
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        color: #9ca3af;
+        font-size: .8rem;
+        font-weight: 500;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    /* ── ROLE PILL ── */
+    .role-pill {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .5rem 1rem;
+        border-radius: 9999px;
+        border: 1.5px solid #dbeafe;
+        font-size: .8rem;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all .2s;
+        background: #fff;
+        white-space: nowrap;
+    }
+
+    .role-pill:hover {
+        border-color: #7EB8F7;
+        color: #1A56E8;
+    }
+
+    .role-pill.active {
+        background: linear-gradient(135deg, #1A56E8, #0EC4C4);
+        color: #fff;
+        border-color: transparent;
+    }
+
+    .role-pill.active i {
+        color: #fff;
+    }
+
+    /* ── CARD ── */
+    .login-card {
+        background: #fff;
+        border: 1.5px solid #e0eeff;
+        border-radius: 1.75rem;
+        box-shadow: 0 24px 64px rgba(26, 86, 232, .10);
+    }
+
+    /* ── LEFT PANEL QUOTE DOT ── */
+    .qdot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, .35);
+        cursor: pointer;
+        transition: background .3s, width .3s;
+    }
+
+    .qdot.active {
+        background: #7EB8F7;
+        width: 20px;
+    }
+
+    /* ── FADE IN ── */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .fade-up {
+        animation: fadeUp .6s ease both;
+    }
+
+    .fade-up-2 {
+        animation: fadeUp .6s .1s ease both;
+    }
+
+    .fade-up-3 {
+        animation: fadeUp .6s .2s ease both;
+    }
+
+    /* ── PULSE ── */
+    @keyframes pulse-ring {
+        0% {
+            transform: scale(.95);
+            opacity: .8
+        }
+
+        70% {
+            transform: scale(1.15);
+            opacity: 0
+        }
+
+        100% {
+            opacity: 0
+        }
+    }
+
+    .pulse-ring {
+        animation: pulse-ring 2.2s ease infinite
+    }
+
+    /* ── MESSAGES ── */
+    .msg {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .75rem 1rem;
+        border-radius: .75rem;
+        font-size: .85rem;
+        font-weight: 500;
+    }
+
+    .msg.error {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .msg.success {
+        background: #f0fdf4;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/"
+    class="fixed top-5 left-5 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur border border-blue-100 text-sm font-semibold text-gray-600 hover:text-blue-600 hover:border-blue-300 transition-all shadow-sm">
+    <i class="ph ph-arrow-left text-base"></i> Back to site
+</a>
+
+<div class="flex min-h-screen">
+    <!-- ════════════════════════════
+       LEFT — decorative panel
+  ════════════════════════════ -->
+    <div class="hidden lg:flex lg:w-[48%] xl:w-[52%] relative flex-col overflow-hidden">
+        <!-- Background slides -->
+        <div class="bg-slide bs1 active"></div>
+        <div class="bg-slide bs2"></div>
+        <div class="bg-slide bs3"></div>
+
+        <!-- Gradient overlay -->
+        <div class="absolute inset-0"
+            style="background:linear-gradient(135deg,rgba(6,15,46,.7) 0%,rgba(26,86,232,.5) 100%); z-index:1;"></div>
+
+        <!-- Decorative circles -->
+        <div class="absolute -top-20 -left-20 w-80 h-80 rounded-full opacity-10 z-[2]" style="background:#7EB8F7;">
+        </div>
+        <div class="absolute -bottom-16 -right-16 w-64 h-64 rounded-full opacity-10 z-[2]" style="background:#0EC4C4;">
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 flex flex-col h-full px-12 py-10">
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-2.5 mb-auto">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style="background:linear-gradient(135deg,#1A56E8,#7EB8F7)">
+                    <i class="ph ph-planet text-white text-xl"></i>
+                </div>
+                <span class="font-extrabold text-xl text-white" style="font-family:Syne,sans-serif;">
+                    Trustar<span style="color:#7EB8F7;">.</span>
+                </span>
+            </a>
+
+            <!-- Main copy -->
+            <div class="flex-1 flex flex-col justify-center pb-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 text-xs font-bold uppercase tracking-widest w-fit"
+                    style="background:rgba(126,184,247,.18);color:#7EB8F7;border:1px solid rgba(126,184,247,.35);">
+                    <span class="relative flex h-2 w-2">
+                        <span class="pulse-ring absolute inline-flex h-full w-full rounded-full opacity-75"
+                            style="background:#7EB8F7;"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2" style="background:#7EB8F7;"></span>
+                    </span>
+                    Welcome Back
+                </div>
+
+                <h1 class="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-5"
+                    style="font-family:Syne,sans-serif;">
+                    Your Learning<br>
+                    <span
+                        style="background:linear-gradient(90deg,#7EB8F7,#0EC4C4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                        Journey Continues
+                    </span>
+                </h1>
+
+                <p class="text-lg leading-relaxed mb-10" style="color:rgba(255,255,255,.65); max-width:380px;">
+                    Access your courses, track your progress, connect with your cohort, and keep building the future —
+                    one project at a time.
+                </p>
+
+                <!-- Rotating testimonial quotes -->
+                <div id="quote-area" class="mb-6" style="min-height:110px;">
+                    <div class="quote active" data-q="0">
+                        <p class="text-base italic leading-relaxed mb-4" style="color:rgba(255,255,255,.75);">
+                            "My child comes home excited to show what they built. That kind of enthusiasm is rare."
+                        </p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                                style="background:linear-gradient(135deg,#0EC4C4,#1A56E8);">J</div>
+                            <div>
+                                <div class="font-bold text-white text-sm" style="font-family:Syne,sans-serif;">Mrs. Joan
+                                    Ette</div>
+                                <div class="text-xs" style="color:rgba(255,255,255,.45);">Parent — Explorers Track</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quote" data-q="1" style="display:none;">
+                        <p class="text-base italic leading-relaxed mb-4" style="color:rgba(255,255,255,.75);">
+                            "Trustar delivers on every promise. I would refer every parent I know without a second
+                            thought."
+                        </p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                                style="background:linear-gradient(135deg,#1A56E8,#7EB8F7);">G</div>
+                            <div>
+                                <div class="font-bold text-white text-sm" style="font-family:Syne,sans-serif;">Mrs.
+                                    Gbodo</div>
+                                <div class="text-xs" style="color:rgba(255,255,255,.45);">Parent — Builders Track</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quote dots -->
+                <div class="flex gap-2">
+                    <button class="qdot active" data-q="0"></button>
+                    <button class="qdot" data-q="1"></button>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div class="flex gap-8 pt-8 border-t border-white/10">
+                <div>
+                    <div class="text-2xl font-extrabold text-white" style="font-family:Syne,sans-serif;">4+</div>
+                    <div class="text-xs" style="color:rgba(255,255,255,.45);">Learning Tracks</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-extrabold text-white" style="font-family:Syne,sans-serif;">100%</div>
+                    <div class="text-xs" style="color:rgba(255,255,255,.45);">Project-Based</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-extrabold text-white" style="font-family:Syne,sans-serif;">1-Day</div>
+                    <div class="text-xs" style="color:rgba(255,255,255,.45);">Free Trial</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════
+       RIGHT — login form
+  ════════════════════════════ -->
+    <div class="flex-1 flex flex-col items-center justify-center px-5 py-16 lg:py-10" style="background:#F0F6FF;">
+        <!-- Mobile logo -->
+        <a href="/" class="flex items-center gap-2.5 mb-8 lg:hidden">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                style="background:linear-gradient(135deg,#1A56E8,#7EB8F7)">
+                <i class="ph ph-planet text-white text-lg"></i>
+            </div>
+            <span class="font-extrabold text-xl text-navy" style="font-family:Syne,sans-serif;color:#060F2E;">
+                Trustar<span style="color:#7EB8F7;">.</span>
+            </span>
+        </a>
+
+        <!-- Card -->
+        <div class="login-card w-full max-w-md p-8 sm:p-10 fade-up">
+            <!-- Header -->
+            <div class="mb-8 fade-up">
+                <h2 class="text-3xl font-extrabold mb-1.5" style="color:#060F2E;font-family:Syne,sans-serif;">
+                    Sign in to your account
+                </h2>
+                <p class="text-gray-500 text-sm">
+                    Don't have an account?
+                    <a href="{% url 'signup' %}" class="font-bold transition-colors" style="color:#1A56E8;">Register
+                        here</a>
+                </p>
+            </div>
+
+            <!-- Role selector -->
+            <div class="mb-6 fade-up-2">
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Sign in as</p>
+                <div class="flex flex-wrap gap-2">
+                    <button class="role-pill active" data-role="student" onclick="selectRole(this)">
+                        <i class="ph ph-graduation-cap text-base"></i> Student
+                    </button>
+                    <button class="role-pill" data-role="parent" onclick="selectRole(this)">
+                        <i class="ph ph-users text-base"></i> Parent
+                    </button>
+                    <button class="role-pill" data-role="instructor" onclick="selectRole(this)">
+                        <i class="ph ph-chalkboard-teacher text-base"></i> Instructor
+                    </button>
+                    <button class="role-pill" data-role="admin" onclick="selectRole(this)">
+                        <i class="ph ph-shield-check text-base"></i> Admin
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Error rendering -->
+            {% if form.errors %}
+            <div class="msg error mb-5">
+                <i class="ph ph-warning-circle text-lg shrink-0"></i>
+                <span>Invalid username or password. Please try again.</span>
+            </div>
+            {% endif %}
+
+            <!-- Google sign-in (Optional placeholder) -->
+            <div class="mb-5 fade-up-2" style="display: none;">
+                <button class="btn-google">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.9700 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z"
+                            fill="#4285F4" />
+                        <path
+                            d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4204 9 14.4204C6.65591 14.4204 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z"
+                            fill="#34A853" />
+                        <path
+                            d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z"
+                            fill="#FBBC05" />
+                        <path
+                            d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z"
+                            fill="#EA4335" />
+                    </svg>
+                    Continue with Google
+                </button>
+            </div>
+
+            <div class="divider mb-5 fade-up-2">or sign in with email</div>
+
+            <!-- Django POST Form -->
+            <form method="post" class="space-y-4 fade-up-3">
+                {% csrf_token %}
+
+                <!-- Next Redirect Parameter (Built-in Django functionality) -->
+                {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+
+                <!-- Username / Email Field -->
+                <div class="field-wrap">
+                    <input type="text" name="username" id="id_username" placeholder="Username or Email address" autocomplete="username"
+                        required autofocus value="{{ form.username.value|default_if_none:'' }}" />
+                    <i class="ph ph-envelope f-icon"></i>
+                </div>
+
+                <!-- Password Field -->
+                <div class="field-wrap">
+                    <input type="password" name="password" id="id_password" placeholder="Password"
+                        autocomplete="current-password" required style="padding-right:3rem;" />
+                    <i class="ph ph-lock f-icon"></i>
+                    <button type="button" class="pw-eye" id="pw-toggle" onclick="togglePw()" aria-label="Show password">
+                        <i class="ph ph-eye" id="pw-icon"></i>
+                    </button>
+                </div>
+
+                <!-- Forgot password -->
+                <div class="flex justify-end">
+                    <a href="#" class="text-sm font-semibold transition-colors hover:text-blue-700"
+                        style="color:#1A56E8;">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-p mt-2" id="login-btn">
+                    <span class="btn-label flex items-center gap-2">
+                        Sign In <i class="ph ph-arrow-right"></i>
+                    </span>
+                </button>
+            </form>
+
+            <!-- Divider + register CTA -->
+            <div class="mt-8 pt-7 border-t border-blue-50 text-center">
+                <p class="text-sm text-gray-500 mb-3">New to Trustar? Start with a <strong class="text-gray-700">1-day
+                        free trial</strong> — no card needed.</p>
+                <a href="https://wa.me/2348000000000?text=Hi%20Trustar%2C%20I%20want%20to%20register!" target="_blank"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all hover:-translate-y-0.5"
+                    style="border:1.5px solid #dbeafe;color:#1A56E8;background:#EAF3FF;">
+                    <i class="ph ph-whatsapp-logo text-base"></i>
+                    Register via WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer note -->
+        <p class="mt-6 text-xs text-gray-400 text-center fade-up">
+            © 2026 Trustar Tech Institute.
+            <a href="#" class="hover:text-blue-500 transition-colors">Privacy Policy</a> ·
+            <a href="#" class="hover:text-blue-500 transition-colors">Terms</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // ── ROLE SELECTOR ──
+    let selectedRole = 'student';
+    function selectRole(el) {
+        document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        selectedRole = el.dataset.role;
+        // Note: If you implement multi-role authentication in Django, you can inject a hidden input field here
+        // document.getElementById('id_role').value = selectedRole;
+    }
+
+    // ── PASSWORD TOGGLE ──
+    function togglePw() {
+        const input = document.getElementById('id_password');
+        const icon = document.getElementById('pw-icon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'ph ph-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'ph ph-eye';
+        }
+    }
+
+    // ── LEFT PANEL SLIDES ──
+    const bgSlides = document.querySelectorAll('.bg-slide');
+    if (bgSlides.length > 0) {
+        let bgCur = 0;
+        setInterval(() => {
+            bgSlides[bgCur].classList.remove('active');
+            bgCur = (bgCur + 1) % bgSlides.length;
+            bgSlides[bgCur].classList.add('active');
+        }, 5000);
+    }
+
+    // ── TESTIMONIAL QUOTES ──
+    const quotes = document.querySelectorAll('.quote');
+    const qdots = document.querySelectorAll('.qdot');
+    let qCur = 0;
+
+    function goQuote(i) {
+        if (!quotes.length) return;
+        quotes[qCur].style.display = 'none';
+        qdots[qCur].classList.remove('active');
+        qCur = i;
+        quotes[qCur].style.display = 'block';
+        qdots[qCur].classList.add('active');
+    }
+
+    if (qdots.length > 0) {
+        qdots.forEach(d => d.addEventListener('click', () => goQuote(parseInt(d.dataset.q))));
+        setInterval(() => goQuote((qCur + 1) % quotes.length), 5500);
+    }
+</script>
+{% endblock %}

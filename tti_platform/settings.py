@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Custom apps
     'core',
+    'accounts',
+    'academics',
+
 ]
 
 MIDDLEWARE = [
@@ -90,6 +93,15 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+AUTH_USER_MODEL = 'accounts.User'
+
+# Where to redirect users after a successful login
+LOGIN_REDIRECT_URL = 'dashboard'  # Can be a URL path or a URL pattern name
+# Where to redirect users after they log out
+LOGOUT_REDIRECT_URL = 'login'
+# Where to redirect users after they log out
+LOGOUT_REDIRECT_URL = '/'
 
 
 # Password validation

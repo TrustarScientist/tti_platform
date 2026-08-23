@@ -1,0 +1,192 @@
+{% extends "dashboard/dashboard_base.html" %}
+{% block page_title %}Overview{% endblock %}
+{% block page_title_display %}Overview{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* small visible label so a "coming soon" spot also says exactly what it's waiting on */
+    .needs-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        padding: .2rem .6rem;
+        border-radius: .5rem;
+        border: 1.5px dashed #cbd5e1;
+        background: #f8fafc;
+        color: #64748b;
+        font-size: .68rem;
+        font-weight: 600;
+        font-family: 'DM Sans', monospace;
+        white-space: nowrap
+    }
+
+    .needs-pill i {
+        font-size: .8rem
+    }
+
+    .needs-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .6rem 0;
+        border-bottom: 1px solid #f1f5f9
+    }
+
+    .needs-row:last-child {
+        border-bottom: none
+    }
+
+    .needs-row-label {
+        font-size: .85rem;
+        font-weight: 600;
+        color: #374151
+    }
+
+    .needs-row-detail {
+        font-size: .75rem;
+        color: #9ca3af;
+        margin-top: .1rem
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    {% if request.user.school %}
+    <h1>{{ request.user.school.name }} — Overview</h1>
+    <p>Coding N Schools Partnership · {{ roster.count }} student{{ roster.count|pluralize }} enrolled</p>
+    {% else %}
+    <h1>Overview</h1>
+    <p style="color:#dc2626;">No school linked to this account yet — contact Trustar admin.</p>
+    {% endif %}
+</div>
+
+<!-- Stat row: 1 real number, 3 explicitly-labeled placeholders -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#EAF3FF"><i class="ph ph-graduation-cap"
+                style="color:#1A56E8"></i></div>
+        <div class="stat-card-val">{{ roster.count|default:"0" }}</div>
+        <div class="stat-card-label">Enrolled Students</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#fffbeb"><i class="ph ph-chart-bar" style="color:#d97706"></i>
+        </div>
+        <div class="stat-card-val">—</div>
+        <div class="stat-card-label">Avg. TRS Score</div>
+        <div class="needs-pill" style="margin-top:.5rem;"><i class="ph ph-wrench"></i> Needs: TRS model</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#f0fdf4"><i class="ph ph-calendar-check"
+                style="color:#16a34a"></i></div>
+        <div class="stat-card-val">—</div>
+        <div class="stat-card-label">Attendance Rate</div>
+        <div class="needs-pill" style="margin-top:.5rem;"><i class="ph ph-wrench"></i> Needs: Attendance model</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#fdf4ff"><i class="ph ph-books" style="color:#9333ea"></i></div>
+        <div class="stat-card-val">—</div>
+        <div class="stat-card-label">Active Programs</div>
+        <div class="needs-pill" style="margin-top:.5rem;"><i class="ph ph-wrench"></i> Needs: Cohort model</div>
+    </div>
+</div>
+
+<!-- Student roster: real names, placeholder columns for everything not modeled yet -->
+<div class="widget" style="margin-bottom:1.5rem;">
+    <div class="widget-header">
+        <span class="widget-title">Student Roster</span>
+    </div>
+    <div class="widget-body" style="padding:0;overflow-x:auto;">
+        {% if roster %}
+        <table style="width:100%;border-collapse:collapse;font-size:.855rem;">
+            <thead>
+                <tr style="background:#f8fafc;">
+                    <th
+                        style="padding:.75rem 1.25rem;text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#94a3b8;">
+                        Student</th>
+                    <!-- adjust field name below if LearnerProfile doesn't call it 'track' -->
+                    <th
+                        style="padding:.75rem 1.25rem;text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#94a3b8;">
+                        Track</th>
+                    <th
+                        style="padding:.75rem 1.25rem;text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#94a3b8;">
+                        Cohort</th>
+                    <th
+                        style="padding:.75rem 1.25rem;text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#94a3b8;">
+                        TRS Score</th>
+                    <th
+                        style="padding:.75rem 1.25rem;text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#94a3b8;">
+                        Attendance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in roster %}
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:.875rem 1.25rem;font-weight:600;color:#111827;">{{ student.first_name }} {{
+                        student.last_name }}</td>
+                    <td style="padding:.875rem 1.25rem;color:#374151;">{{ student.track|default:"—" }}</td>
+                    <td style="padding:.875rem 1.25rem;"><span class="needs-pill"><i class="ph ph-wrench"></i> Needs:
+                            Cohort model</span></td>
+                    <td style="padding:.875rem 1.25rem;"><span class="needs-pill"><i class="ph ph-wrench"></i> Needs:
+                            TRS model</span></td>
+                    <td style="padding:.875rem 1.25rem;"><span class="needs-pill"><i class="ph ph-wrench"></i> Needs:
+                            Attendance model</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="ph ph-users"></i>
+            <p>No students enrolled from your school yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Explicit build checklist — what's needed before this dashboard is fully real -->
+<div class="widget">
+    <div class="widget-header">
+        <span class="widget-title">What This Dashboard Still Needs</span>
+    </div>
+    <div class="widget-body">
+        <div class="needs-row">
+            <div>
+                <div class="needs-row-label">TRS scores per student</div>
+                <div class="needs-row-detail">A TRS model with score + six dimensions, linked to LearnerProfile</div>
+            </div>
+            <i class="ph ph-wrench" style="color:#cbd5e1;font-size:1.2rem;"></i>
+        </div>
+        <div class="needs-row">
+            <div>
+                <div class="needs-row-label">Attendance tracking</div>
+                <div class="needs-row-detail">A Session/Attendance model recording presence per class meeting</div>
+            </div>
+            <i class="ph ph-wrench" style="color:#cbd5e1;font-size:1.2rem;"></i>
+        </div>
+        <div class="needs-row">
+            <div>
+                <div class="needs-row-label">Cohort / program assignment</div>
+                <div class="needs-row-detail">A Cohort model + Enrollment linking LearnerProfile ↔ Cohort ↔ Track</div>
+            </div>
+            <i class="ph ph-wrench" style="color:#cbd5e1;font-size:1.2rem;"></i>
+        </div>
+        <div class="needs-row">
+            <div>
+                <div class="needs-row-label">Partnership billing status</div>
+                <div class="needs-row-detail">An Invoice/Payment model linked to School — ties to the Base Fee +
+                    Per-Student pricing model already designed</div>
+            </div>
+            <i class="ph ph-wrench" style="color:#cbd5e1;font-size:1.2rem;"></i>
+        </div>
+        <div class="needs-row">
+            <div>
+                <div class="needs-row-label">Progress report export</div>
+                <div class="needs-row-detail">Downstream of TRS + Cohort existing — no new model, just a report view
+                </div>
+            </div>
+            <i class="ph ph-wrench" style="color:#cbd5e1;font-size:1.2rem;"></i>
+        </div>
+    </div>
+</div>
+{% endblock %}

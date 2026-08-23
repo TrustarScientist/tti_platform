@@ -1,0 +1,80 @@
+{% extends "dashboard/dashboard_base.html" %}
+{% block page_title %}Overview{% endblock %}
+{% block page_title_display %}Overview{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Welcome, {{ request.user.first_name|default:request.user.email }} 👋</h1>
+    <p>
+        {% if children %}
+        Managing {{ children.count }} child{{ children.count|pluralize:",ren" }} on Trustar.
+        {% else %}
+        No children linked to your account yet.
+        {% endif %}
+    </p>
+</div>
+
+{# REAL DATA: children linked via guardian FK #}
+<div class="content-grid" style="margin-bottom:1.5rem;">
+    {% for child in children %}
+    <div class="widget">
+        <div class="widget-header">
+            <span class="widget-title">
+                {{ child.first_name }} {{ child.last_name }}
+            </span>
+            {# Adjust field name below to whatever LearnerProfile calls its track/program field #}
+            {% if child.track %}
+            <span class="pill" style="background:#EAF3FF;color:#1A56E8">{{ child.track }}</span>
+            {% endif %}
+        </div>
+        <div class="widget-body">
+            {# Adjust field name if not date_of_birth #}
+            {% if child.date_of_birth %}
+            <p style="font-size:.83rem;color:#6b7280;margin-bottom:.75rem;">Born {{ child.date_of_birth }}</p>
+            {% endif %}
+            <div class="pill pill-gray"><i class="ph ph-clock"></i> TRS score — coming soon</div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="widget" style="grid-column:1/-1;">
+        <div class="widget-body">
+            <div class="empty-state">
+                <i class="ph ph-users"></i>
+                <p>You haven't linked any children yet.</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {# Add a Child — no view built yet, placeholder card #}
+    <a href="#" class="widget"
+        style="display:flex;align-items:center;justify-content:center;min-height:120px;text-decoration:none;border-style:dashed;">
+        <div style="text-align:center;color:#9ca3af;">
+            <i class="ph ph-user-plus" style="font-size:1.75rem;display:block;margin-bottom:.4rem;color:#7EB8F7;"></i>
+            <span style="font-size:.85rem;font-weight:600;">Add a Child</span>
+        </div>
+    </a>
+</div>
+
+{# HONEST PLACEHOLDERS — no real model behind these yet #}
+<div class="content-grid">
+    <div class="widget">
+        <div class="widget-header"><span class="widget-title">Recent Activity</span></div>
+        <div class="widget-body">
+            <div class="empty-state">
+                <i class="ph ph-clock-countdown"></i>
+                <p>Activity tracking is coming soon.</p>
+            </div>
+        </div>
+    </div>                                                    
+    <div class="widget">
+        <div class="widget-header"><span class="widget-title">Messages from Instructor</span></div>
+        <div class="widget-body">
+            <div class="empty-state">
+                <i class="ph ph-chat-circle-dots"></i>
+                <p>Instructor messaging is coming soon.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

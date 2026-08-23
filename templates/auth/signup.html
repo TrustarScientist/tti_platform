@@ -1,0 +1,322 @@
+<!-- <h2>Create Account</h2>
+
+<form method="post">
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+
+        Sign Up
+
+    </button>
+
+</form> -->
+
+<!-- wow -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — Trustar Tech Institute</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            blue: '#1A56E8', baby: '#7EB8F7',
+            navy: '#060F2E', gold: '#F5B400',
+            teal: '#0EC4C4', light: '#EAF3FF',
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { overflow-x: hidden; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #F0F6FF;
+      color: #111827;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
+    
+    /* ── CARD ── */
+    .reg-card {
+      background: #fff;
+      border: 1.5px solid #e0eeff;
+      border-radius: 1.75rem;
+      box-shadow: 0 24px 64px rgba(26,86,232,.10);
+    }
+
+    /* ── FORM FIELDS ── */
+    .field-wrap { position: relative; }
+    .field-label {
+      display: block; font-size: .78rem; font-weight: 700;
+      color: #6b7280; text-transform: uppercase; letter-spacing: .05em;
+      margin-bottom: .4rem;
+    }
+    .field-wrap input,
+    .field-wrap select {
+      width: 100%;
+      padding: .85rem 1rem .85rem 3rem;
+      border: 1.5px solid #dbeafe;
+      border-radius: .875rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .93rem;
+      color: #111827;
+      background: #fff;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+      appearance: none;
+    }
+    .field-wrap select { cursor: pointer; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%239ca3af" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path></svg>'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem; }
+    .field-wrap input:focus,
+    .field-wrap select:focus {
+      border-color: #1A56E8;
+      box-shadow: 0 0 0 4px rgba(26,86,232,.08);
+    }
+    .field-wrap input::placeholder { color: #9ca3af; }
+    .field-wrap .f-icon {
+      position: absolute; left: .9rem; top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af; font-size: 1.15rem; pointer-events: none;
+      transition: color .25s;
+    }
+    .field-wrap:focus-within .f-icon { color: #1A56E8; }
+
+    /* ── PASSWORD EYE ── */
+    .pw-eye {
+      position: absolute; right: .9rem; top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af; cursor: pointer; font-size: 1.15rem;
+      background: none; border: none; padding: 0;
+      transition: color .2s;
+    }
+    .pw-eye:hover { color: #1A56E8; }
+
+    /* ── BUTTONS ── */
+    .btn-p {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .9rem 2rem; border-radius: 9999px;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: .92rem;
+      background: linear-gradient(135deg, #1A56E8, #0EC4C4);
+      color: #fff; border: none; cursor: pointer;
+      transition: transform .25s, box-shadow .25s;
+      width: 100%;
+    }
+    .btn-p:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(26,86,232,.35); }
+
+    /* ── MESSAGE ── */
+    .msg { display:flex; align-items:flex-start; gap:.5rem; padding:.8rem 1rem; border-radius:.875rem; font-size:.85rem; font-weight:500; margin-bottom:1.5rem; }
+    .msg.error  { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+
+    /* ── LEFT PANEL ── */
+    .bg-slide { position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;filter:brightness(.3);transition:opacity 1.8s ease; }
+    .bg-slide.active { opacity:1; }
+    .bs1 { background-image:url('https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80'); }
+  </style>
+</head>
+
+<body class="min-h-screen">
+
+  <div class="flex min-h-screen">
+
+    <!-- ════════════════ LEFT PANEL ════════════════ -->
+    <div class="hidden lg:flex lg:w-[42%] xl:w-[45%] relative flex-col overflow-hidden">
+      <div class="bg-slide bs1 active"></div>
+      <div class="absolute inset-0 z-[1]" style="background:linear-gradient(145deg,rgba(6,15,46,.75) 0%,rgba(26,86,232,.55) 100%)"></div>
+      <div class="absolute -top-24 -left-24 w-80 h-80 rounded-full opacity-[.07] z-[2]" style="background:#7EB8F7"></div>
+      <div class="absolute -bottom-16 -right-16 w-64 h-64 rounded-full opacity-[.07] z-[2]" style="background:#0EC4C4"></div>
+
+      <div class="relative z-10 flex flex-col h-full px-10 xl:px-12 py-10">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1A56E8,#7EB8F7)">
+            <i class="ph ph-planet text-white text-xl"></i>
+          </div>
+          <span class="font-extrabold text-xl text-white" style="font-family:Syne,sans-serif;">Trustar<span style="color:#7EB8F7;">.</span></span>
+        </a>
+
+        <!-- Centre copy -->
+        <div class="flex-1 flex flex-col justify-center py-10">
+          <h2 class="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-5" style="font-family:Syne,sans-serif;">
+            Start Building<br>
+            <span style="background:linear-gradient(90deg,#7EB8F7,#0EC4C4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+              Your Future Today
+            </span>
+          </h2>
+          <p class="text-base leading-relaxed mb-10" style="color:rgba(255,255,255,.62); max-width:360px;">
+            Join students and parents already inside the Trustar Tech Institute ecosystem — where every learner builds something real.
+          </p>
+
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(126,184,247,.18)">
+                <i class="ph ph-check-circle text-base" style="color:#7EB8F7"></i>
+              </div>
+              <span class="text-sm" style="color:rgba(255,255,255,.7);">Live cohort sessions with real instructors</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(126,184,247,.18)">
+                <i class="ph ph-check-circle text-base" style="color:#7EB8F7"></i>
+              </div>
+              <span class="text-sm" style="color:rgba(255,255,255,.7);">Parent dashboard for real-time progress tracking</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ RIGHT PANEL (FORM) ════════════════ -->
+    <div class="flex-1 flex flex-col items-center justify-center px-5 py-12 overflow-y-auto" style="background:#F0F6FF;">
+      
+      <!-- Mobile logo -->
+      <a href="/" class="flex items-center gap-2.5 mb-8 lg:hidden">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1A56E8,#7EB8F7)">
+          <i class="ph ph-planet text-white text-lg"></i>
+        </div>
+        <span class="font-extrabold text-xl" style="font-family:Syne,sans-serif;color:#060F2E;">Trustar<span style="color:#7EB8F7;">.</span></span>
+      </a>
+
+      <!-- ── MAIN CARD ── -->
+      <div class="reg-card w-full max-w-xl p-7 sm:p-9">
+        
+        <h2 class="text-2xl font-extrabold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Create your account</h2>
+        <p class="text-gray-500 text-sm mb-6">
+          Already have one? <a href="{% url 'login' %}" class="font-bold transition-colors" style="color:#1A56E8;">Sign in</a>
+        </p>
+
+        <!-- DJANGO ERRORS BLOCK -->
+        {% if form.errors %}
+          <div class="msg error">
+            <i class="ph ph-warning-circle text-lg shrink-0 mt-0.5"></i>
+            <div>
+              <strong class="block mb-1">Please correct the following errors:</strong>
+              <ul class="list-disc pl-4 space-y-1">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'signup' %}" class="space-y-4">
+          {% csrf_token %}
+
+          <!-- Name Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label" for="id_first_name">First Name</label>
+              <div class="field-wrap">
+                <input type="text" name="first_name" id="id_first_name" placeholder="John" value="{{ form.first_name.value|default:'' }}" required />
+                <i class="ph ph-user f-icon"></i>
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="id_last_name">Last Name</label>
+              <div class="field-wrap">
+                <input type="text" name="last_name" id="id_last_name" placeholder="Doe" value="{{ form.last_name.value|default:'' }}" required />
+                <i class="ph ph-user f-icon"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="field-label" for="id_email">Email address</label>
+            <div class="field-wrap">
+              <input type="email" name="email" id="id_email" placeholder="you@example.com" autocomplete="email" value="{{ form.email.value|default:'' }}" required />
+              <i class="ph ph-envelope f-icon"></i>
+            </div>
+          </div>
+
+          <!-- Role Selection -->
+          <div>
+            <label class="field-label" for="id_role">Account Role</label>
+            <div class="field-wrap">
+              <select name="role" id="id_role" required>
+                <option value="" disabled {% if not form.role.value %}selected{% endif %}>Select your role...</option>
+                <option value="student" {% if form.role.value == 'student' %}selected{% endif %}>Student</option>
+                <option value="parent" {% if form.role.value == 'parent' %}selected{% endif %}>Parent</option>
+              </select>
+              <i class="ph ph-identification-card f-icon"></i>
+            </div>
+          </div>
+
+          <!-- Passwords Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label" for="id_password1">Password</label>
+              <div class="field-wrap">
+                <input type="password" name="password1" id="id_password1" placeholder="At least 8 chars" autocomplete="new-password" required style="padding-right:2.5rem;" />
+                <i class="ph ph-lock f-icon"></i>
+                <button type="button" class="pw-eye" onclick="togglePw('id_password1','pw-icon-1')" aria-label="Show password">
+                  <i class="ph ph-eye" id="pw-icon-1"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="id_password2">Confirm</label>
+              <div class="field-wrap">
+                <input type="password" name="password2" id="id_password2" placeholder="Repeat password" autocomplete="new-password" required style="padding-right:2.5rem;" />
+                <i class="ph ph-lock-key f-icon"></i>
+                <button type="button" class="pw-eye" onclick="togglePw('id_password2','pw-icon-2')" aria-label="Show password">
+                  <i class="ph ph-eye" id="pw-icon-2"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3">
+            <button type="submit" class="btn-p">
+              <span class="flex items-center gap-2">Create Account <i class="ph ph-arrow-right"></i></span>
+            </button>
+          </div>
+          
+        </form>
+      </div><!-- /reg-card -->
+      
+      <p class="mt-6 text-xs text-gray-400 text-center">
+        © {% now "Y" %} Trustar Tech Institute. All rights reserved.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- Password toggle script -->
+  <script>
+    function togglePw(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('ph-eye', 'ph-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('ph-eye-slash', 'ph-eye');
+      }
+    }
+  </script>
+</body>
+</html>

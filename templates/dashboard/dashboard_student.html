@@ -1,0 +1,82 @@
+{% extends "dashboard/dashboard_base.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_title_display %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Welcome, {{ request.user.first_name|default:request.user.email }} 👋</h1>
+    {% if student_profile %}
+    <!-- adjust field name below if LearnerProfile doesn't call it 'track' -->
+    <p>
+        {% if student_profile.track %}{{ student_profile.track }} Track{% else %}No track assigned yet{% endif %}
+    </p>
+    {% else %}
+    <p>Your learner profile hasn't been set up yet.</p>
+    {% endif %}
+</div>
+
+{% if not student_profile %}
+<!-- A student User can exist without a linked LearnerProfile — e.g. right
+       after public signup, before an admin/instructor attaches one. Handle
+       it honestly instead of showing a broken-looking empty dashboard. -->
+<div class="widget" style="margin-bottom:1.5rem;">
+    <div class="widget-body">
+        <div class="empty-state">
+            <i class="ph ph-user-circle-gear"></i>
+            <p>
+                Your account isn't linked to a learner profile yet.
+                Reach out to your instructor or Trustar admin to get set up.
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- HONEST PLACEHOLDERS — no models behind these yet -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#EAF3FF"><i class="ph ph-chart-bar" style="color:#1A56E8"></i>
+        </div>
+        <div class="stat-card-val">—</div>
+        <div class="stat-card-label">TRS Score</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#f0fdf4"><i class="ph ph-clipboard-text"
+                style="color:#16a34a"></i></div>
+        <div class="stat-card-val">—</div>
+        <div class="stat-card-label">Assignments Due</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#fdf4ff"><i class="ph ph-users" style="color:#9333ea"></i></div>
+        <div class="stat-card-val">—</div>
+        <div class="stat-card-label">Cohort</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon" style="background:#fffbeb"><i class="ph ph-seal-check" style="color:#d97706"></i>
+        </div>
+        <div class="stat-card-val">—</div>
+        <div class="stat-card-label">Certificates</div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="widget">
+        <div class="widget-header"><span class="widget-title">Continue Learning</span></div>
+        <div class="widget-body">
+            <div class="empty-state">
+                <i class="ph ph-play-circle"></i>
+                <p>Program content and lessons are coming soon.</p>
+            </div>
+        </div>
+    </div>
+    <div class="widget">
+        <div class="widget-header"><span class="widget-title">Announcements</span></div>
+        <div class="widget-body">
+            <div class="empty-state">
+                <i class="ph ph-megaphone-simple"></i>
+                <p>No announcements yet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
