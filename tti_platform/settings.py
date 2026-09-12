@@ -47,9 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Custom apps
-    'core',
-    'accounts',
-    'academics',
+   
 
 ]
 
@@ -94,7 +92,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'accounts.User'
+# AUTH_USER_MODEL = 'accounts.User'
 
 # Where to redirect users after a successful login
 LOGIN_REDIRECT_URL = 'dashboard'  # Can be a URL path or a URL pattern name
