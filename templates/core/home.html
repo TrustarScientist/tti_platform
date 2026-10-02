@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="_1pN-Q-Cpq1Q-KEDfCtkOHMEt74qoKmmZN5kJOs1yww" />
+    <title>Trustar Tech Institute | Build Something Real</title>
+    <meta name="description"
+        content="Practical technology education for Nigerian students aged 4 to adult. Real projects, real mentors, real credentials — not just certificates." />
+    <meta property="og:title" content="Trustar Tech Institute | Build Something Real" />
+    <meta property="og:description"
+        content="Practical technology education for Nigerian students aged 4 to adult. Real projects, real mentors, real credentials." />
+    <meta property="og:type" content="website" />
+    <!-- pwa install support -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1A56E8">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
+        rel="stylesheet" />
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: { DEFAULT: '#1A56E8', 600: '#1A56E8', 700: '#1445c4' },
+                        baby: '#7EB8F7',
+                        navy: { DEFAULT: '#060F2E', 800: '#0d1f5a' },
+                        gold: '#F5B400',
+                        teal: '#0EC4C4',
+                        light: '#EAF3FF',
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box
+        }
+
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #fff;
+            color: #111827;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            max-width: 100vw
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: 'Syne', sans-serif
+        }
+
+        :root {
+            --blue: #1A56E8;
+            --baby: #7EB8F7;
+            --navy: #060F2E;
+            --gold: #F5B400;
+            --teal: #0EC4C4;
+            --light: #EAF3FF;
+        }
+
+        /* ── NAV ── */
+        #nav {
+            transition: background .35s, box-shadow .35s, backdrop-filter .35s
+        }
+
+        #nav::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(to bottom, rgba(6, 15, 46, .55), rgba(6, 15, 46, 0));
+            opacity: 1;
+            transition: opacity .35s
+        }
+
+        #nav.scrolled::before {
+            opacity: 0
+        }
+
+        #nav.scrolled {
+            background: rgba(255, 255, 255, .85) !important;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 2px 24px rgba(26, 86, 232, .10)
+        }
+
+        #nav.scrolled .nav-link {
+            color: #374151
+        }
+
+        #nav.scrolled .nav-link:hover {
+            color: #1A56E8
+        }
+
+        #nav.scrolled .logo-text {
+            color: #060F2E
+        }
+
+        #nav.scrolled .logo-dot {
+            color: #1A56E8
+        }
+
+        #nav.scrolled #ham {
+            color: #060F2E
+        }
+
+        .nav-link {
+            position: relative
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #7EB8F7, #0EC4C4);
+            transition: width .25s ease
+        }
+
+        .nav-link:hover::after {
+            width: 100%
+        }
+
+        /* ── HERO ── */
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #060F2E 0%, #0d1f5a 45%, #10306e 75%, #060F2E 100%);
+            overflow: hidden
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            inset: -10%;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px);
+            background-size: 46px 46px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%)
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(60px);
+            opacity: .35;
+            animation: float 14s ease-in-out infinite
+        }
+
+        .orb-1 {
+            width: 420px;
+            height: 420px;
+            background: #1A56E8;
+            top: -8%;
+            left: -8%;
+            animation-delay: 0s
+        }
+
+        .orb-2 {
+            width: 340px;
+            height: 340px;
+            background: #0EC4C4;
+            bottom: -10%;
+            right: -6%;
+            animation-delay: -5s
+        }
+
+        .orb-3 {
+            width: 260px;
+            height: 260px;
+            background: #7EB8F7;
+            top: 35%;
+            right: 18%;
+            opacity: .22;
+            animation-delay: -9s
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1)
+            }
+
+            50% {
+                transform: translate(3%, -4%) scale(1.08)
+            }
+        }
+
+        .hero-in {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: heroRise .8s cubic-bezier(.22, .9, .3, 1) forwards
+        }
+
+        .hero-in.d1 {
+            animation-delay: .05s
+        }
+
+        .hero-in.d2 {
+            animation-delay: .18s
+        }
+
+        .hero-in.d3 {
+            animation-delay: .32s
+        }
+
+        .hero-in.d4 {
+            animation-delay: .46s
+        }
+
+        .hero-in.d5 {
+            animation-delay: .6s
+        }
+
+        @keyframes heroRise {
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .scroll-cue {
+            animation: bob 2.2s ease-in-out infinite
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(8px)
+            }
+        }
+
+        /* ── MOBILE MENU ── */
+        #mob {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .42s ease, opacity .3s;
+            opacity: 0;
+            width: 100%
+        }
+
+        #mob.open {
+            max-height: 600px;
+            opacity: 1
+        }
+
+        /* ── SCROLL REVEAL ── */
+        .sr {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity .7s ease, transform .7s ease
+        }
+
+        .sr.in {
+            opacity: 1;
+            transform: none
+        }
+
+        .sr-d1 {
+            transition-delay: .08s
+        }
+
+        .sr-d2 {
+            transition-delay: .16s
+        }
+
+        .sr-d3 {
+            transition-delay: .24s
+        }
+
+        .sr-d4 {
+            transition-delay: .32s
+        }
+
+        .sr-d5 {
+            transition-delay: .40s
+        }
+
+        .sr-d6 {
+            transition-delay: .48s
+        }
+
+        /* ── BUTTONS ── */
+        .btn-p {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .9rem 2rem;
+            border-radius: 9999px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .9rem;
+            background: linear-gradient(135deg, #1A56E8, #0EC4C4);
+            color: #fff;
+            transition: transform .25s, box-shadow .25s;
+            white-space: nowrap
+        }
+
+        .btn-p:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(26, 86, 232, .35)
+        }
+
+        .btn-p:focus-visible {
+            outline: 2px solid #7EB8F7;
+            outline-offset: 3px
+        }
+
+        .btn-o {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .85rem 2rem;
+            border-radius: 9999px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .9rem;
+            border: 2px solid rgba(255, 255, 255, .4);
+            color: #fff;
+            transition: background .25s, border-color .25s, transform .25s;
+            white-space: nowrap
+        }
+
+        .btn-o:hover {
+            background: rgba(255, 255, 255, .1);
+            border-color: #fff;
+            transform: translateY(-2px)
+        }
+
+        .btn-dark {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .9rem 2rem;
+            border-radius: 9999px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .9rem;
+            background: #060F2E;
+            color: #fff;
+            transition: background .25s, transform .25s
+        }
+
+        .btn-dark:hover {
+            background: #0d1f5a;
+            transform: translateY(-2px)
+        }
+
+        .btn-outline-navy {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .85rem 2rem;
+            border-radius: 9999px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .9rem;
+            border: 2px solid #060F2E;
+            color: #060F2E;
+            transition: all .25s;
+            white-space: nowrap
+        }
+
+        .btn-outline-navy:hover {
+            background: #060F2E;
+            color: #fff;
+            transform: translateY(-2px)
+        }
+
+        /* ── GRADIENT TEXT ── */
+        .gt {
+            background: linear-gradient(135deg, #1A56E8, #7EB8F7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .gt-teal {
+            background: linear-gradient(135deg, #0EC4C4, #7EB8F7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .gt-gold {
+            background: linear-gradient(135deg, #F5B400, #0EC4C4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        /* ── LABEL ── */
+        .label {
+            display: inline-block;
+            padding: .3rem 1rem;
+            border-radius: 9999px;
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            background: #EAF3FF;
+            color: #1A56E8
+        }
+
+        .label-teal {
+            background: #e6fafa;
+            color: #0891b2
+        }
+
+        .label-gold {
+            background: #fffbeb;
+            color: #b45309
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: #fff;
+            border: 1.5px solid #dbeafe;
+            border-radius: 1.5rem;
+            transition: transform .3s, box-shadow .3s, border-color .3s
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 48px rgba(26, 86, 232, .10);
+            border-color: #7EB8F7
+        }
+
+        /* ── PILLAR CARDS ── */
+        .pillar-card {
+            border-radius: 1.5rem;
+            border: 1.5px solid #e8f0fe;
+            background: #fff;
+            padding: 2rem;
+            transition: transform .3s, box-shadow .3s, border-color .3s;
+            position: relative;
+            overflow: hidden
+        }
+
+        .pillar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #1A56E8, #0EC4C4);
+            opacity: 0;
+            transition: opacity .3s
+        }
+
+        .pillar-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 48px rgba(26, 86, 232, .09);
+            border-color: #7EB8F7
+        }
+
+        .pillar-card:hover::before {
+            opacity: 1
+        }
+
+        /* ── PATHWAY CARDS ── */
+        .pathway {
+            border-radius: 1.5rem;
+            overflow: hidden;
+            transition: transform .3s, box-shadow .3s
+        }
+
+        .pathway:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 24px 56px rgba(26, 86, 232, .15)
+        }
+
+        /* ── FAQ ── */
+        .faq-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .4s ease, padding .3s
+        }
+
+        .faq-body.open {
+            max-height: 320px
+        }
+
+        .faq-chevron {
+            transition: transform .3s
+        }
+
+        .faq-chevron.open {
+            transform: rotate(180deg)
+        }
+
+        /* ── MARQUEE ── */
+        @keyframes marquee {
+            from {
+                transform: translateX(0)
+            }
+
+            to {
+                transform: translateX(-50%)
+            }
+        }
+
+        .marquee-wrap {
+            overflow: hidden;
+            width: 100%
+        }
+
+        .marquee-inner {
+            display: flex;
+            animation: marquee 30s linear infinite;
+            width: max-content
+        }
+
+        .marquee-inner:hover {
+            animation-play-state: paused
+        }
+
+        /* ── COURSE CARD ── */
+        .course-card {
+            border-radius: 1.25rem;
+            background: #fff;
+            border: 1.5px solid #e0eeff;
+            padding: 1.5rem;
+            transition: transform .3s, box-shadow .3s, border-color .3s
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(26, 86, 232, .1);
+            border-color: #7EB8F7
+        }
+
+        /* ── DASH ROW ── */
+        .dash-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: .9rem 1.2rem;
+            border-radius: 1rem;
+            border: 1.5px solid #dbeafe;
+            background: #fff
+        }
+
+        /* ── MOBILE NAV ── */
+        .mob-cl {
+            display: block;
+            padding: .75rem 0;
+            border-bottom: 1px solid #f0f4ff;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111;
+            transition: color .2s;
+            text-decoration: none
+        }
+
+        .mob-cl:hover {
+            color: #1A56E8
+        }
+
+        /* ── STEP DOT ── */
+        .step-dot {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            background: linear-gradient(135deg, #1A56E8, #0EC4C4);
+            flex-shrink: 0
+        }
+
+        /* ── B2B CARD ── */
+        .b2b-card {
+            background: #fff;
+            border: 1.5px solid #dbeafe;
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            transition: transform .3s, box-shadow .3s, border-color .3s
+        }
+
+        .b2b-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 44px rgba(26, 86, 232, .11);
+            border-color: #7EB8F7
+        }
+
+        /* ── TESTIMONIAL ── */
+        .testi-card {
+            background: #fff;
+            border: 1.5px solid #e8f0fe;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            transition: transform .3s, box-shadow .3s
+        }
+
+        .testi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(26, 86, 232, .09)
+        }
+
+        /* ── SCHOOLOS BADGE ── */
+        .schoolos-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .4rem 1.1rem;
+            border-radius: 9999px;
+            font-size: .78rem;
+            font-weight: 700;
+            background: rgba(14, 196, 196, .12);
+            color: #0EC4C4;
+            border: 1px solid rgba(14, 196, 196, .3)
+        }
+
+        /* ── AUDIENCE TABS ── */
+        .aud-tab {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            padding: .75rem 1.3rem;
+            border-radius: 9999px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .85rem;
+            border: 1.5px solid #dbeafe;
+            background: #fff;
+            color: #374151;
+            cursor: pointer;
+            transition: all .25s;
+            white-space: nowrap
+        }
+
+        .aud-tab:hover {
+            border-color: #7EB8F7;
+            color: #1A56E8
+        }
+
+        .aud-tab.active {
+            background: linear-gradient(135deg, #1A56E8, #0EC4C4);
+            border-color: transparent;
+            color: #fff
+        }
+
+        .aud-panel {
+            display: none
+        }
+
+        .aud-panel.active {
+            display: block
+        }
+
+        /* ── SHOWCASE CARD ── */
+        .showcase-card {
+            background: #fff;
+            border: 1.5px solid #e8f0fe;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            transition: transform .3s, box-shadow .3s, border-color .3s
+        }
+
+        .showcase-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 48px rgba(26, 86, 232, .1);
+            border-color: #7EB8F7
+        }
+
+        /* ── SHORT COURSE CHIP ── */
+        .sc-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .3rem .85rem;
+            border-radius: 9999px;
+            font-size: .72rem;
+            font-weight: 700;
+            background: #f0fdfa;
+            color: #0891b2;
+            border: 1px solid #ccfbf1
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav id="nav" class="fixed top-0 left-0 w-full z-50 bg-transparent flex flex-col">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10 w-full">
+            <div class="flex items-center justify-between h-[4.5rem]">
+
+                <a href="#" class="flex items-center gap-2.5">
+                    <img src="/static/img/tti-logo.png" alt="Trustar Tech Institute logo"
+                        class="w-10 h-10 rounded-full object-cover shrink-0" />
+                    <span class="logo-text font-bold text-xl text-white transition-colors"
+                        style="font-family:Syne,sans-serif;">
+                        Trustar<span class="logo-dot" style="color:#7EB8F7;font-family:Syne,sans-serif;">.</span>
+                    </span>
+                </a>
+
+                <div class="hidden lg:flex items-center gap-7">
+                    <a href="#audience"
+                        class="nav-link text-sm font-medium text-white/80 hover:text-white transition-colors">Who We
+                        Serve</a>
+                    <a href="#philosophy"
+                        class="nav-link text-sm font-medium text-white/80 hover:text-white transition-colors">Our
+                        Philosophy</a>
+                    <a href="#pathways"
+                        class="nav-link text-sm font-medium text-white/80 hover:text-white transition-colors">Programs</a>
+                    <a href="#short-courses"
+                        class="nav-link text-sm font-medium text-white/80 hover:text-white transition-colors">Short
+                        Courses</a>
+                    <a href="#b2b"
+                        class="nav-link text-sm font-medium text-white/80 hover:text-white transition-colors">For
+                        Schools</a>
+                    <a href="#schoolos"
+                        class="nav-link text-sm font-medium text-white/80 hover:text-white transition-colors">SchoolOS</a>
+                    <a href="#faq"
+                        class="nav-link text-sm font-medium text-white/80 hover:text-white transition-colors">FAQ</a>
+                </div>
+
+                <div class="hidden lg:flex items-center gap-4">
+                    <a href="/accounts/login/"
+                        class="nav-link text-sm font-semibold text-white/80 hover:text-white transition-colors">Log
+                        In</a>
+                    <a href="/accounts/signup/" class="btn-p" style="padding:.65rem 1.4rem;font-size:.82rem;">
+                        Sign Up <i class="ph ph-arrow-right text-sm"></i>
+                    </a>
+                </div>
+
+                <button id="ham" class="lg:hidden p-2 text-white" aria-label="Menu">
+                    <i class="ph ph-list text-3xl" id="ham-ic"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="mob" class="lg:hidden bg-white border-t border-blue-100 shadow-xl w-full">
+            <div class="max-w-7xl mx-auto px-6 py-3">
+                <a href="#audience" class="mob-cl">Who We Serve</a>
+                <a href="#philosophy" class="mob-cl">Our Philosophy</a>
+                <a href="#pathways" class="mob-cl">Programs</a>
+                <a href="#short-courses" class="mob-cl">Short Courses</a>
+                <a href="#b2b" class="mob-cl">For Schools</a>
+                <a href="#schoolos" class="mob-cl">SchoolOS</a>
+                <a href="#faq" class="mob-cl">FAQ</a>
+                <a href="/accounts/login/" class="mob-cl">Log In</a>
+                <a href="/accounts/signup/" class="btn-p mt-3 mb-2 w-full justify-center"
+                    style="border-radius:1rem;">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="relative h-screen min-h-[770px] overflow-hidden">
+        <div class="hero-bg">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+        </div>
+
+        <div class="relative z-10 h-full flex flex-col items-center justify-center text-center px-5 pb-10">
+            <span
+                class="hero-in d1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
+                style="background:rgba(126,184,247,.14);color:#7EB8F7;border:1px solid rgba(126,184,247,.3)">
+                <i class="ph ph-globe-hemisphere-west"></i> A Technology Capability Company
+            </span>
+            <h1 class="hero-in d2 text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.08] max-w-5xl mb-6"
+                style="font-family:Syne,sans-serif;letter-spacing:-0.01em;">
+                Build something real.<br>
+                <span
+                    style="background:linear-gradient(90deg,#7EB8F7,#0EC4C4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                    Not just a certificate.
+                </span>
+            </h1>
+
+            <p class="hero-in d3 text-white/65 text-lg sm:text-xl max-w-2xl leading-relaxed mb-4">
+                Trustar helps <strong class="text-white/90 font-semibold">individuals, schools, and
+                    organisations</strong> — aged 4 to adult, wherever they are — learn, build, and operate with
+                technology.
+            </p>
+
+            <p class="hero-in d3 text-white/40 text-sm max-w-xl mb-10 italic">
+                Most education teaches you to study hard. Trustar teaches you to build something worth showing.
+            </p>
+
+            <div class="hero-in d4 flex flex-col sm:flex-row gap-4 items-center">
+                <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%20want%20to%20take%20the%20free%20Passion%20Test!"
+                    target="_blank" class="btn-p text-base">
+                    <i class="ph ph-compass text-lg"></i> Take the Free Passion Test
+                </a>
+                <a href="#audience" class="btn-o text-base">
+                    Find Your Path <i class="ph ph-arrow-down text-base"></i>
+                </a>
+            </div>
+
+            <a href="#audience" aria-label="Scroll down"
+                class="hero-in d5 scroll-cue absolute bottom-8 flex flex-col items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors">
+                <span class="text-[0.65rem] font-bold uppercase tracking-widest">Explore</span>
+                <i class="ph ph-caret-down text-lg"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- TRUST BAR -->
+    <div class="py-4 border-y border-blue-50 bg-white">
+        <div class="marquee-wrap">
+            <div class="marquee-inner">
+                <div class="flex items-center gap-10 px-5">
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-hammer text-blue-500 text-base"></i> Every lesson produces a real
+                        project</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-users text-blue-500 text-base"></i> Small cohort classes — everyone is
+                        known</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-compass text-blue-500 text-base"></i> Free Passion Test — find your track
+                        first</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-gift text-blue-500 text-base"></i> 1-day free trial — no card required</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-certificate text-blue-500 text-base"></i> Certificate tied to real portfolio
+                        outcomes</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-chalkboard-teacher text-blue-500 text-base"></i> Instructors who build in the
+                        real world</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-device-mobile text-blue-500 text-base"></i> Online — learners in Lagos, London
+                        & beyond</span>
+                </div>
+                <div class="flex items-center gap-10 px-5" aria-hidden>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-hammer text-blue-500 text-base"></i> Every lesson produces a real
+                        project</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-users text-blue-500 text-base"></i> Small cohort classes — everyone is
+                        known</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-compass text-blue-500 text-base"></i> Free Passion Test — find your track
+                        first</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-gift text-blue-500 text-base"></i> 1-day free trial — no card required</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-certificate text-blue-500 text-base"></i> Certificate tied to real portfolio
+                        outcomes</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-chalkboard-teacher text-blue-500 text-base"></i> Instructors who build in the
+                        real world</span>
+                    <span class="flex items-center gap-2 text-sm font-semibold text-gray-400 whitespace-nowrap"><i
+                            class="ph ph-device-mobile text-blue-500 text-base"></i> Online — learners in Lagos, London
+                        & beyond</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WHO WE SERVE -->
+    <section id="audience" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="text-center max-w-2xl mx-auto mb-14 sr">
+                <span class="label mb-4">Who We Serve</span>
+                <h2 class="text-4xl lg:text-5xl font-extrabold mt-4 mb-5" style="color:#060F2E;">
+                    One capability company.<br><span class="gt">Five ways to work with us.</span>
+                </h2>
+                <p class="text-gray-500 text-lg">Trustar is a technology capability company — we help individuals and
+                    organisations learn, build, operate, and grow with technology. Choose where you fit.</p>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-3 mb-12 sr" id="aud-tabs">
+                <button class="aud-tab active" data-tab="kids"><i class="ph ph-palette"></i> Kids</button>
+                <button class="aud-tab" data-tab="teens"><i class="ph ph-star"></i> Teenagers</button>
+                <button class="aud-tab" data-tab="pro"><i class="ph ph-briefcase"></i> Professionals &
+                    Entrepreneurs</button>
+                <button class="aud-tab" data-tab="schools"><i class="ph ph-graduation-cap"></i> Schools</button>
+                <button class="aud-tab" data-tab="org"><i class="ph ph-buildings"></i> Organisations</button>
+            </div>
+
+            <div class="max-w-4xl mx-auto sr">
+                <div class="aud-panel active" data-panel="kids">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest mb-2 block"
+                                style="color:#F5B400">Ages 4–12</span>
+                            <h3 class="text-2xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                                For the curious child</h3>
+                            <p class="text-gray-500 leading-relaxed mb-5">From a first tap on a screen to a first
+                                working game. Foundations and Explorers turn play into confidence, and confidence into
+                                real, shareable creations — no reading required to start.</p>
+                            <a href="#pathways" class="inline-flex items-center gap-1.5 text-sm font-bold"
+                                style="color:#1A56E8">See Foundations & Explorers <i class="ph ph-arrow-right"></i></a>
+                        </div>
+                        <div class="rounded-2xl p-6 border border-blue-100" style="background:#F8FBFF">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#1A56E8">What a
+                                child builds</div>
+                            <p class="text-sm text-gray-600 leading-relaxed">Animated stories, characters that interact,
+                                simple games — real things they can show off, not worksheets.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aud-panel" data-panel="teens">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest mb-2 block"
+                                style="color:#16a34a">Ages 13–17</span>
+                            <h3 class="text-2xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                                For the teenager ready to build</h3>
+                            <p class="text-gray-500 leading-relaxed mb-5">Builders takes web development, JavaScript,
+                                and AI tools and turns them into a real portfolio — built for an actual client, the kind
+                                that means something in a university application or a first freelance gig.</p>
+                            <a href="#pathways" class="inline-flex items-center gap-1.5 text-sm font-bold"
+                                style="color:#1A56E8">See Builders <i class="ph ph-arrow-right"></i></a>
+                        </div>
+                        <div class="rounded-2xl p-6 border border-blue-100" style="background:#F8FBFF">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#1A56E8">What a
+                                teen builds</div>
+                            <p class="text-sm text-gray-600 leading-relaxed">Live websites with a real, shareable link —
+                                deployed, not just demoed.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aud-panel" data-panel="pro">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest mb-2 block"
+                                style="color:#7EB8F7">Ages 15+ & Adults</span>
+                            <h3 class="text-2xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                                For the career-switcher and the founder</h3>
+                            <p class="text-gray-500 leading-relaxed mb-5">Software Development (Engineers) is for adults
+                                who want to land a tech role, freelance, or build their own product — Django,
+                                PostgreSQL, APIs, and deployment, taught by someone who builds these systems for a
+                                living.</p>
+                            <a href="#pathways" class="inline-flex items-center gap-1.5 text-sm font-bold"
+                                style="color:#1A56E8">See Software Development <i class="ph ph-arrow-right"></i></a>
+                        </div>
+                        <div class="rounded-2xl p-6 border border-blue-100" style="background:#F8FBFF">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#1A56E8">What an
+                                adult builds</div>
+                            <p class="text-sm text-gray-600 leading-relaxed">Deployed web applications and automation
+                                scripts — a portfolio built for hiring managers and clients, not classrooms.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aud-panel" data-panel="schools">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest mb-2 block"
+                                style="color:#9333ea">K–12 Schools</span>
+                            <h3 class="text-2xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                                For schools building technology capability</h3>
+                            <p class="text-gray-500 leading-relaxed mb-5">Coding N Schools brings a full curriculum,
+                                instructors, and parent reporting directly into your school. Pair it with a
+                                Trustar-built website or SchoolOS, and your school's entire digital presence and
+                                operations improve together.</p>
+                            <a href="#b2b" class="inline-flex items-center gap-1.5 text-sm font-bold"
+                                style="color:#1A56E8">See Coding N Schools <i class="ph ph-arrow-right"></i></a>
+                        </div>
+                        <div class="rounded-2xl p-6 border border-blue-100" style="background:#F8FBFF">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#1A56E8">What a
+                                school gets</div>
+                            <p class="text-sm text-gray-600 leading-relaxed">Delivered curriculum, certified graduates,
+                                and a stronger digital front door — without hiring or training extra staff.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aud-panel" data-panel="org">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest mb-2 block"
+                                style="color:#0891b2">Businesses & Teams</span>
+                            <h3 class="text-2xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                                For organisations that run on technology</h3>
+                            <p class="text-gray-500 leading-relaxed mb-5">Beyond training individuals, Trustar builds
+                                the software and digital infrastructure organisations need to operate — from custom
+                                websites to internal systems. If your team needs to build, digitise, or upskill, talk to
+                                us.</p>
+                            <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%27d%20like%20to%20discuss%20a%20technology%20solution%20for%20our%20organisation."
+                                target="_blank" class="inline-flex items-center gap-1.5 text-sm font-bold"
+                                style="color:#1A56E8">Talk to us <i class="ph ph-arrow-right"></i></a>
+                        </div>
+                        <div class="rounded-2xl p-6 border border-blue-100" style="background:#F8FBFF">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#1A56E8">What an
+                                organisation gets</div>
+                            <p class="text-sm text-gray-600 leading-relaxed">Software built for how your team actually
+                                works, plus the technology training to run it well.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE PROBLEM -->
+    <section class="py-20" style="background:#F8FBFF;">
+        <div class="max-w-5xl mx-auto px-5 lg:px-10">
+            <div class="text-center max-w-3xl mx-auto sr">
+                <span class="label mb-5">Why Trustar Exists</span>
+                <h2 class="text-4xl lg:text-5xl font-extrabold mt-4 mb-6 leading-tight" style="color:#060F2E;">
+                    Students aren't failing.<br><span class="gt">The system around them is.</span>
+                </h2>
+                <p class="text-gray-500 text-lg leading-relaxed mb-4">
+                    Outdated curricula. Zero practical training. No mentorship pipeline. Certificates that employers
+                    quietly distrust. The result — everywhere we've looked, from Lagos to London — is the same: talented
+                    young people who studied hard and still can't build, create, or compete.
+                </p>
+                <p class="text-gray-600 text-lg leading-relaxed font-medium">
+                    Trustar was built to close that gap — not with more videos to watch, but with real projects to
+                    build, real mentors to learn from, and real credentials tied to demonstrated capability.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE 6 PILLARS -->
+    <section id="philosophy" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="text-center max-w-2xl mx-auto mb-16 sr">
+                <span class="label mb-4">Our Philosophy</span>
+                <h2 class="text-4xl lg:text-5xl font-extrabold mt-4 mb-5" style="color:#060F2E;">
+                    Six things education<br><span class="gt">was missing. We built them.</span>
+                </h2>
+                <p class="text-gray-500 text-lg">Trustar exists to help people and organisations turn potential into
+                    practical capability with technology. Every feature on this platform solves a specific, documented
+                    failure in how technology is taught.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="pillar-card sr sr-d1">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,#EAF3FF,#dbeafe)">
+                        <i class="ph ph-books text-xl" style="color:#1A56E8"></i>
+                    </div>
+                    <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#1A56E8">Problem → Solved
+                    </div>
+                    <h3 class="text-lg font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">Updated
+                        Resources</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Curricula from decades ago can't prepare students
+                        for 2026. Ours is reviewed every cohort — built around what the market actually demands right
+                        now.</p>
+                </div>
+
+                <div class="pillar-card sr sr-d2">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,#f0fdfa,#ccfbf1)">
+                        <i class="ph ph-hammer text-xl" style="color:#0EC4C4"></i>
+                    </div>
+                    <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#0EC4C4">Problem → Solved
+                    </div>
+                    <h3 class="text-lg font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">Practical
+                        & Hands-On</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Every session demands output. Students don't watch
+                        and take notes — they build. Every cohort ends with a real portfolio project, not just a quiz
+                        result.</p>
+                </div>
+
+                <div class="pillar-card sr sr-d3">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,#fffbeb,#fef3c7)">
+                        <i class="ph ph-users-three text-xl" style="color:#d97706"></i>
+                    </div>
+                    <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#d97706">Problem → Solved
+                    </div>
+                    <h3 class="text-lg font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                        Mentorship & Incubation</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">A structured pathway from student to professional
+                        to founder. Cohort-based learning creates peer accountability and keeps costs down. Instructors
+                        are practitioners, not just teachers.</p>
+                </div>
+
+                <div class="pillar-card sr sr-d4">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,#e6fafa,#a5f3f3)">
+                        <i class="ph ph-network text-xl" style="color:#0891b2"></i>
+                    </div>
+                    <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#0891b2">Problem → Solved
+                    </div>
+                    <h3 class="text-lg font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">Central
+                        Communication</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Parents, students, teachers, and school admins
+                        operating in silos is a structural failure. SchoolOS connects every stakeholder in one place —
+                        results, attendance, and announcements, one system.</p>
+                </div>
+
+                <div class="pillar-card sr sr-d5">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,#fdf4ff,#f3e8ff)">
+                        <i class="ph ph-currency-ngn text-xl" style="color:#9333ea"></i>
+                    </div>
+                    <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#9333ea">Problem → Solved
+                    </div>
+                    <h3 class="text-lg font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                        Affordable & Accessible</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Quality tech education has too often been locked
+                        behind geography and cost. Trustar is online-first, deliberately tiered, and cohort-based — a
+                        student in Kano has the same access as one in Kent.</p>
+                </div>
+
+                <div class="pillar-card sr sr-d6">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,#EAF3FF,#dbeafe)">
+                        <i class="ph ph-seal-check text-xl" style="color:#1A56E8"></i>
+                    </div>
+                    <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#1A56E8">Problem → Solved
+                    </div>
+                    <h3 class="text-lg font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                        Credentials That Mean Something</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">A certificate without demonstrated capability is
+                        just paper. Trustar certificates are tied to the TRS — a profile across 6 real dimensions of
+                        technical ability, backed by a portfolio of work.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PASSION TEST + COHORT LEARNING -->
+    <section id="passion-test" class="py-24" style="background:#F0F6FF;">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="text-center max-w-2xl mx-auto mb-14 sr">
+                <span class="label mb-3">How You Start</span>
+                <h2 class="text-4xl lg:text-5xl font-extrabold mt-3 mb-4"
+                    style="color:#060F2E;font-family:Syne,sans-serif;">Not sure where you fit?<br><span class="gt">Start
+                        with these two things.</span></h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto sr">
+                <div class="rounded-3xl p-8 border-2" style="background:#fff;border-color:#1A56E8">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style="background:#EAF3FF">
+                        <i class="ph ph-compass text-3xl" style="color:#1A56E8"></i>
+                    </div>
+                    <div class="label mb-3">100% Free</div>
+                    <h3 class="text-2xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">The
+                        Passion Test</h3>
+                    <p class="text-gray-500 leading-relaxed mb-6">A short, free interest and aptitude assessment that
+                        places you or your child on the right track from day one — no guesswork, no wrong first choice.
+                        Takes minutes, saves months.</p>
+                    <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%27d%20like%20to%20take%20the%20free%20Passion%20Test!"
+                        target="_blank" class="btn-p text-sm">
+                        <i class="ph ph-compass"></i> Take the Free Passion Test
+                    </a>
+                </div>
+
+                <div class="rounded-3xl p-8 border-2 border-blue-100" style="background:#fff">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style="background:#f0fdfa">
+                        <i class="ph ph-users-three text-3xl" style="color:#0EC4C4"></i>
+                    </div>
+                    <div class="label-teal label mb-3">How We Teach</div>
+                    <h3 class="text-2xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                        Cohort-Based Learning</h3>
+                    <p class="text-gray-500 leading-relaxed mb-6">You learn alongside a small group, not alone in a
+                        video queue. Cohorts keep costs lower than one-on-one tutoring, keep energy higher than
+                        self-paced courses, and mean every student is actually known by their instructor.</p>
+                    <a href="#pathways" class="btn-o text-sm" style="border-color:#0EC4C4;color:#0EC4C4">
+                        <i class="ph ph-calendar"></i> See Upcoming Cohorts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STUDENT SHOWCASE -->
+    <section id="showcase" class="py-24 bg-white sr">
+        <div class="max-w-6xl mx-auto px-5 lg:px-10">
+            <div class="text-center mb-14">
+                <span class="label mb-3">What Students Actually Build</span>
+                <h2 class="text-4xl font-extrabold mt-3 mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">Real
+                    students. Real work. Right now.</h2>
+                <p class="text-gray-500 max-w-xl mx-auto">A small, honest look at what's already happening in current
+                    cohorts — not stock photos.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="showcase-card">
+                    <div class="h-1.5 w-full" style="background:linear-gradient(90deg,#F5B400,#7EB8F7)"></div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                                style="background:linear-gradient(135deg,#F5B400,#7EB8F7)">K</div>
+                            <div>
+                                <div class="font-bold text-sm" style="color:#060F2E;">Kenton, age 4</div>
+                                <div class="text-xs text-gray-400">Foundations — Graduated</div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">Built a gliding animal that changes body colour
+                            and size on command — his first taste of cause, effect, and control.</p>
+                    </div>
+                </div>
+
+                <div class="showcase-card">
+                    <div class="h-1.5 w-full" style="background:linear-gradient(90deg,#7EB8F7,#0EC4C4)"></div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                                style="background:linear-gradient(135deg,#7EB8F7,#0EC4C4)">G</div>
+                            <div>
+                                <div class="font-bold text-sm" style="color:#060F2E;">Gianna, age 6</div>
+                                <div class="text-xs text-gray-400">Foundations — Graduated</div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">Built a small interactive world — several
+                            sounding characters and buildings that respond to and interact with each other.</p>
+                    </div>
+                </div>
+
+                <div class="showcase-card">
+                    <div class="h-1.5 w-full" style="background:linear-gradient(90deg,#16a34a,#0EC4C4)"></div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                                style="background:linear-gradient(135deg,#16a34a,#0EC4C4)">I</div>
+                            <div>
+                                <div class="font-bold text-sm" style="color:#060F2E;">Ife</div>
+                                <div class="text-xs text-gray-400">Explorers — In Progress</div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">Currently building with Forever and Motion
+                            blocks in Scratch, designing custom sprites from scratch — literally.</p>
+                    </div>
+                </div>
+
+                <div class="showcase-card"
+                    style="background:linear-gradient(180deg,#060F2E 0%,#1A3A9E 100%);border:none">
+                    <div class="h-1.5 w-full" style="background:linear-gradient(90deg,#F5B400,#0EC4C4)"></div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                                style="background:rgba(255,255,255,.15)"><i
+                                    class="ph ph-briefcase text-white text-sm"></i></div>
+                            <div>
+                                <div class="font-bold text-sm text-white">Adult Learner</div>
+                                <div class="text-xs" style="color:rgba(255,255,255,.5)">Engineers — Starting Soon</div>
+                            </div>
+                        </div>
+                        <p class="text-sm leading-relaxed" style="color:rgba(255,255,255,.7)">About to start Python
+                            inside the Engineers track — working toward landing a first role in tech.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PARENT OUTCOME -->
+    <section class="py-20" style="background:#F8FBFF;">
+        <div class="max-w-6xl mx-auto px-5 lg:px-10">
+            <div class="text-center mb-12">
+                <span class="label mb-3">For Parents</span>
+                <h2 class="text-4xl font-extrabold mt-3 mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">What
+                    your child develops. What they build.</h2>
+                <p class="text-gray-500 max-w-xl mx-auto">Not promises — specific outcomes visible to you from day one.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                <div class="bg-white rounded-2xl p-7 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#EAF3FF"><i
+                                class="ph ph-brain text-blue-600"></i></div>
+                        <span class="font-bold text-sm uppercase tracking-widest"
+                            style="color:#1A56E8;font-family:Syne,sans-serif;">Skills Developed</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="dash-row"><i class="ph ph-lightbulb text-amber-400 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">Critical Thinking & Problem Solving</span>
+                        </div>
+                        <div class="dash-row"><i class="ph ph-robot text-blue-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">AI Literacy — using AI as a tool, not a
+                                crutch</span></div>
+                        <div class="dash-row"><i class="ph ph-handshake text-green-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">Teamwork & Collaboration</span></div>
+                        <div class="dash-row"><i class="ph ph-trend-up text-teal-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">Entrepreneurial Mindset</span></div>
+                        <div class="dash-row"><i class="ph ph-shield-check text-purple-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">Digital Safety & Cybersecurity
+                                Awareness</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-7 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#EAF3FF"><i
+                                class="ph ph-wrench text-blue-600"></i></div>
+                        <span class="font-bold text-sm uppercase tracking-widest"
+                            style="color:#1A56E8;font-family:Syne,sans-serif;">Projects Built</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="dash-row"><i class="ph ph-palette text-pink-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">First animated stories and interactive
+                                creations</span></div>
+                        <div class="dash-row"><i class="ph ph-globe text-blue-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">Real, live websites with their own link</span>
+                        </div>
+                        <div class="dash-row"><i class="ph ph-device-mobile text-green-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">Mobile apps and digital products</span></div>
+                        <div class="dash-row"><i class="ph ph-robot text-purple-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">AI-powered projects and chatbots</span></div>
+                        <div class="dash-row"><i class="ph ph-rocket-launch text-teal-500 text-lg shrink-0"></i><span
+                                class="text-sm font-medium text-gray-700">Startup prototypes for real problems</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LEARNING PATHWAYS -->
+    <section id="pathways" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="text-center max-w-2xl mx-auto mb-14 sr">
+                <span class="label mb-3">Learning Pathways — The 4 Core Tracks</span>
+                <h2 class="text-4xl lg:text-5xl font-extrabold mt-3 mb-4"
+                    style="color:#060F2E;font-family:Syne,sans-serif;">A structured path for<br><span class="gt">every
+                        stage of life</span></h2>
+                <p class="text-gray-500 text-lg">From a 4-year-old's first tap on a screen to an adult building
+                    enterprise software. Want something shorter or more specific? <a href="#short-courses"
+                        class="font-bold" style="color:#1A56E8">See Short Courses below.</a></p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sr">
+
+                <div class="pathway flex flex-col border border-blue-100" style="background:#fff">
+                    <div class="h-2 w-full" style="background:linear-gradient(90deg,#F5B400,#7EB8F7)"></div>
+                    <div class="p-7 flex flex-col flex-1">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+                            style="background:#fffbeb">
+                            <i class="ph ph-palette text-2xl" style="color:#F5B400"></i>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#b45309">Ages 4 –
+                            7</span>
+                        <h3 class="text-xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                            Foundations</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed flex-1">First encounters with technology through
+                            play, story, and creativity — no reading required. The confidence that makes everything
+                            after this easier.</p>
+                        <ul class="mt-5 space-y-2 text-xs text-gray-500 font-medium">
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-amber-500"></i>Laptop-based,
+                                no reading needed</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-amber-500"></i>First animated
+                                stories</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-amber-500"></i>Digital
+                                Confidence — not afraid of a screen</li>
+                        </ul>
+                        <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%20want%20to%20enroll%20for%20Foundations!"
+                            target="_blank"
+                            class="mt-6 inline-flex items-center gap-1.5 text-sm font-bold transition-colors"
+                            style="color:#1A56E8">
+                            Enroll <i class="ph ph-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pathway flex flex-col border border-blue-100" style="background:#fff">
+                    <div class="h-2 w-full" style="background:linear-gradient(90deg,#7EB8F7,#0EC4C4)"></div>
+                    <div class="p-7 flex flex-col flex-1">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+                            style="background:#EAF3FF">
+                            <i class="ph ph-star text-2xl" style="color:#7EB8F7"></i>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#7EB8F7">Ages 8 – 12
+                            · Kids Coding</span>
+                        <h3 class="text-xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                            Explorers</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed flex-1">Real programming logic through Scratch —
+                            loops, conditionals, variables, events — the spark that turns a curious child into a
+                            confident builder.</p>
+                        <ul class="mt-5 space-y-2 text-xs text-gray-500 font-medium">
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-blue-400"></i>Scratch & block
+                                coding</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-blue-400"></i>Toolkit Fluency
+                                — safe web search & apps</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-blue-400"></i>Build real
+                                games</li>
+                        </ul>
+                        <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%20want%20to%20enroll%20for%20Explorers!"
+                            target="_blank"
+                            class="mt-6 inline-flex items-center gap-1.5 text-sm font-bold transition-colors"
+                            style="color:#1A56E8">
+                            Enroll <i class="ph ph-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pathway flex flex-col border border-blue-100" style="background:#fff">
+                    <div class="h-2 w-full" style="background:linear-gradient(90deg,#16a34a,#0EC4C4)"></div>
+                    <div class="p-7 flex flex-col flex-1">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+                            style="background:#f0fdf4">
+                            <i class="ph ph-compass text-2xl" style="color:#16a34a"></i>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#16a34a">Ages 13 –
+                            17 · Teen Builders</span>
+                        <h3 class="text-xl font-extrabold mb-3" style="color:#060F2E;font-family:Syne,sans-serif;">
+                            Builders</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed flex-1">JavaScript, the real web, and AI tools —
+                            teens build for an actual client and graduate with a real portfolio, not a hypothetical one.
+                        </p>
+                        <ul class="mt-5 space-y-2 text-xs text-gray-500 font-medium">
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-green-500"></i>JavaScript,
+                                HTML & CSS</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-green-500"></i>A real client
+                                project</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check text-green-500"></i>Deploy real,
+                                paid work</li>
+                        </ul>
+                        <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%20want%20to%20enroll%20for%20Builders!"
+                            target="_blank"
+                            class="mt-6 inline-flex items-center gap-1.5 text-sm font-bold transition-colors"
+                            style="color:#1A56E8">
+                            Enroll <i class="ph ph-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pathway flex flex-col relative"
+                    style="background:linear-gradient(180deg,#060F2E 0%,#1A3A9E 100%);border:none">
+                    <div class="h-2 w-full" style="background:linear-gradient(90deg,#F5B400,#0EC4C4)"></div>
+                    <div class="p-7 flex flex-col flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                style="background:rgba(126,184,247,.15)">
+                                <i class="ph ph-hammer text-2xl" style="color:#7EB8F7"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold"
+                                style="background:#F5B400;color:#060F2E">Most Popular</span>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#7EB8F7">Ages 15+ &
+                            Adults</span>
+                        <h3 class="text-xl font-extrabold mb-3 text-white" style="font-family:Syne,sans-serif;">Software
+                            Development (Engineers)</h3>
+                        <p class="text-sm leading-relaxed flex-1" style="color:rgba(255,255,255,.65)">Full-stack
+                            development in Python and JavaScript, APIs, and databases — for senior secondary students
+                            and adults ready to build for real. Choose a Job Lane or Business Lane.</p>
+                        <ul class="mt-5 space-y-2 text-xs font-medium" style="color:rgba(255,255,255,.55)">
+                            <li class="flex items-center gap-2"><i class="ph ph-check" style="color:#7EB8F7"></i>Python
+                                & JavaScript, full-stack</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check" style="color:#7EB8F7"></i>Job
+                                Lane or Business Lane</li>
+                            <li class="flex items-center gap-2"><i class="ph ph-check" style="color:#7EB8F7"></i>Deploy
+                                real products</li>
+                        </ul>
+                        <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%20want%20to%20enroll%20for%20Software%20Dev!"
+                            target="_blank" class="mt-6 inline-flex items-center gap-1.5 text-sm font-bold"
+                            style="color:#7EB8F7">
+                            Enroll <i class="ph ph-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-sm text-gray-400 mt-10 sr">
+                <i class="ph ph-gift text-blue-400"></i> Every program includes a <strong class="text-gray-600">1-day
+                    free learning trial</strong> — no card required. Not sure which track fits? <a href="#passion-test"
+                    class="font-bold" style="color:#1A56E8">Take the free Passion Test</a> first.
+            </p>
+        </div>
+    </section>
+
+    <!-- SHORT COURSES -->
+    <section id="short-courses" class="py-24" style="background:#F0F6FF;">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="text-center max-w-2xl mx-auto mb-14 sr">
+                <span class="label mb-3">Beyond the 4 Tracks</span>
+                <h2 class="text-4xl lg:text-5xl font-extrabold mt-3 mb-4"
+                    style="color:#060F2E;font-family:Syne,sans-serif;">Not ready for a full track?<br><span
+                        class="gt">Start with a Short Course.</span></h2>
+                <p class="text-gray-500 text-lg">Focused, shorter commitments for a specific skill — book one on its
+                    own, or as a lower-stakes way to try Trustar before a full track.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sr">
+                <div class="course-card">
+                    <span class="sc-chip mb-4"><i class="ph ph-robot"></i> All Ages</span>
+                    <h3 class="text-lg font-extrabold mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">AI
+                        Literacy</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Using AI tools well and safely — prompting,
+                        judgment, and knowing where AI helps and where it doesn't. Standalone, or layered into any
+                        track.</p>
+                </div>
+
+                <div class="course-card">
+                    <span class="sc-chip mb-4"><i class="ph ph-terminal-window"></i> Teens & Adults</span>
+                    <h3 class="text-lg font-extrabold mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Python
+                        Automation</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Write scripts that do real, repetitive work for you
+                        — files, spreadsheets, the web. A fast, practical entry point into programming.</p>
+                </div>
+
+                <div class="course-card">
+                    <span class="sc-chip mb-4"><i class="ph ph-globe"></i> Teens & Adults</span>
+                    <h3 class="text-lg font-extrabold mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Build
+                        Your First Website</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">A short, focused sprint from a blank page to a live
+                        site with your own link — the fastest way to see what building for the web feels like.</p>
+                </div>
+
+                <div class="course-card">
+                    <span class="sc-chip mb-4"><i class="ph ph-shield-check"></i> Teens & Adults</span>
+                    <h3 class="text-lg font-extrabold mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">
+                        Cybersecurity Foundations</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">The essentials of staying safe online and thinking
+                        like a defender — a practical short course, and a first look at a specialisation offered inside
+                        Engineers.</p>
+                </div>
+
+                <div class="course-card">
+                    <span class="sc-chip mb-4"><i class="ph ph-briefcase"></i> Adults</span>
+                    <h3 class="text-lg font-extrabold mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Portfolio
+                        & Freelance Prep</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Turn projects you've already built into a portfolio
+                        that actually gets you hired or booked — positioning, presentation, and pricing your work.</p>
+                </div>
+
+                <div class="course-card" style="border-style:dashed;">
+                    <span class="sc-chip mb-4" style="background:#EAF3FF;color:#1A56E8;border-color:#dbeafe"><i
+                            class="ph ph-plus-circle"></i> Custom</span>
+                    <h3 class="text-lg font-extrabold mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Something
+                        Specific in Mind?</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Short courses are added based on real demand from
+                        students and schools. Tell us what you need — we may already be building it.</p>
+                </div>
+            </div>
+
+            <div class="text-center mt-10 sr">
+                <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%27m%20interested%20in%20a%20Short%20Course!"
+                    target="_blank" class="btn-p text-sm">
+                    <i class="ph ph-whatsapp-logo"></i> Ask About Short Courses
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRUSTAR METHOD -->
+    <section id="method" class="py-24 bg-white sr">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="text-center max-w-xl mx-auto mb-14">
+                <span class="label mb-3">The Trustar Method</span>
+                <h2 class="text-4xl font-extrabold mt-3 mb-4" style="color:#060F2E;font-family:Syne,sans-serif;">From
+                    curious to<br><span class="gt">certified builder</span></h2>
+                <p class="text-gray-500 text-lg">A 5-stage system designed to move every learner from interest to
+                    impact.</p>
+            </div>
+
+            <div class="hidden lg:flex items-start gap-0">
+                <div class="flex-1 flex flex-col items-center text-center px-4">
+                    <div class="step-dot mb-4">1</div>
+                    <div class="w-full h-0.5 mb-6" style="background:linear-gradient(90deg,transparent,#7EB8F7)"></div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background:#EAF3FF">
+                        <i class="ph ph-compass text-2xl" style="color:#1A56E8"></i></div>
+                    <h4 class="font-bold text-base mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Discover
+                    </h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">The free Passion Test places every learner on their
+                        right track from day one.</p>
+                </div>
+                <div class="flex-1 flex flex-col items-center text-center px-4">
+                    <div class="step-dot mb-4">2</div>
+                    <div class="w-full h-0.5 mb-6" style="background:linear-gradient(90deg,#7EB8F7,#1A56E8)"></div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background:#EAF3FF">
+                        <i class="ph ph-book-open text-2xl" style="color:#1A56E8"></i></div>
+                    <h4 class="font-bold text-base mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Learn</h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">Structured, live, cohort-based training with
+                        assignments and real accountability to a small group.</p>
+                </div>
+                <div class="flex-1 flex flex-col items-center text-center px-4">
+                    <div class="step-dot mb-4">3</div>
+                    <div class="w-full h-0.5 mb-6" style="background:linear-gradient(90deg,#1A56E8,#0EC4C4)"></div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background:#f0fdfa">
+                        <i class="ph ph-hammer text-2xl" style="color:#0EC4C4"></i></div>
+                    <h4 class="font-bold text-base mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Build</h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">Hands-on project work — real products that go into
+                        a real, shareable portfolio.</p>
+                </div>
+                <div class="flex-1 flex flex-col items-center text-center px-4">
+                    <div class="step-dot mb-4">4</div>
+                    <div class="w-full h-0.5 mb-6" style="background:linear-gradient(90deg,#0EC4C4,#F5B400)"></div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background:#fffbeb">
+                        <i class="ph ph-presentation-chart text-2xl" style="color:#d97706"></i></div>
+                    <h4 class="font-bold text-base mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Showcase
+                    </h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">Present real work to mentors, peers, and parents.
+                        Confidence comes from demonstration, not words.</p>
+                </div>
+                <div class="flex-1 flex flex-col items-center text-center px-4">
+                    <div class="step-dot mb-4">5</div>
+                    <div class="w-full h-0.5 mb-6" style="background:linear-gradient(90deg,#F5B400,transparent)"></div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                        style="background:linear-gradient(135deg,#1A56E8,#0EC4C4)"><i
+                            class="ph ph-rocket-launch text-2xl text-white"></i></div>
+                    <h4 class="font-bold text-base mb-2" style="color:#060F2E;font-family:Syne,sans-serif;">Launch</h4>
+                    <p class="text-gray-500 text-sm leading-relaxed">Career, freelancing, or your own product — with a
+                        TRS certificate and portfolio to prove you can build.</p>
+                </div>
+            </div>
+
+            <div class="lg:hidden space-y-4">
+                <div class="flex items-start gap-5 bg-white rounded-2xl p-5 border border-blue-100">
+                    <div class="step-dot shrink-0">1</div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Discover</h4>
+                        <p class="text-gray-500 text-sm">The free Passion Test places every learner on the right track.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-5 bg-white rounded-2xl p-5 border border-blue-100">
+                    <div class="step-dot shrink-0">2</div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Learn</h4>
+                        <p class="text-gray-500 text-sm">Live, cohort-based training with real accountability.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-5 bg-white rounded-2xl p-5 border border-blue-100">
+                    <div class="step-dot shrink-0">3</div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Build</h4>
+                        <p class="text-gray-500 text-sm">Real projects that go into a real portfolio.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-5 bg-white rounded-2xl p-5 border border-blue-100">
+                    <div class="step-dot shrink-0">4</div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Showcase</h4>
+                        <p class="text-gray-500 text-sm">Present work to mentors, peers, and parents.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-5 bg-white rounded-2xl p-5 border border-blue-100">
+                    <div class="step-dot shrink-0">5</div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Launch</h4>
+                        <p class="text-gray-500 text-sm">Career or own product — with a certificate and portfolio.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="testimonials" class="py-24 sr" style="background:#F8FBFF;">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="text-center mb-14">
+                <span class="label mb-3">What Families Say</span>
+                <h2 class="text-4xl font-extrabold mt-3" style="color:#060F2E;font-family:Syne,sans-serif;">Real
+                    parents. Real results.</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div class="testi-card">
+                    <div class="flex gap-1 mb-5">
+                        <i class="ph ph-star-fill text-amber-400"></i><i class="ph ph-star-fill text-amber-400"></i>
+                        <i class="ph ph-star-fill text-amber-400"></i><i class="ph ph-star-fill text-amber-400"></i><i
+                            class="ph ph-star-fill text-amber-400"></i>
+                    </div>
+                    <blockquote class="text-gray-700 leading-relaxed mb-6 text-base">
+                        "I would refer every parent I know without a second thought — this is the kind of education that
+                        actually prepares children for the future."
+                    </blockquote>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg shrink-0"
+                            style="background:linear-gradient(135deg,#1A56E8,#7EB8F7)">G</div>
+                        <div>
+                            <div class="font-bold" style="color:#060F2E;font-family:Syne,sans-serif;">Mrs. Gbodo</div>
+                            <div class="text-gray-400 text-sm">Parent — Builders Track</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testi-card">
+                    <div class="flex gap-1 mb-5">
+                        <i class="ph ph-star-fill text-amber-400"></i><i class="ph ph-star-fill text-amber-400"></i>
+                        <i class="ph ph-star-fill text-amber-400"></i><i class="ph ph-star-fill text-amber-400"></i><i
+                            class="ph ph-star-fill text-amber-400"></i>
+                    </div>
+                    <blockquote class="text-gray-700 leading-relaxed mb-6 text-base">
+                        "What stands out is how excited my children are about every session. They come home eager to
+                        show what they've built. That kind of enthusiasm doesn't happen by accident — Trustar genuinely
+                        makes learning feel like something worth showing up for."
+                    </blockquote>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg shrink-0"
+                            style="background:linear-gradient(135deg,#0EC4C4,#1A56E8)">J</div>
+                        <div>
+                            <div class="font-bold" style="color:#060F2E;font-family:Syne,sans-serif;">Mrs. Joan Ette
+                            </div>
+                            <div class="text-gray-400 text-sm">Parent — Explorers Track</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCHOOLOS -->
+    <section id="schoolos" class="py-24" style="background:linear-gradient(135deg,#060F2E 0%,#0d2060 100%)">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="flex flex-col lg:flex-row items-start gap-16">
+
+                <div class="flex-1 sr">
+                    <div class="schoolos-pill mb-6">SchoolOS — School Management System</div>
+                    <h2 class="text-3xl lg:text-5xl font-extrabold text-white mb-6 leading-tight"
+                        style="font-family:Syne,sans-serif;">
+                        The infrastructure<br><span class="gt-teal">every school needs.</span>
+                    </h2>
+                    <p class="mb-5 text-lg leading-relaxed" style="color:rgba(255,255,255,.65)">
+                        Parents, students, teachers, and school administrators operating in silos is one of the most
+                        consistent failures in schools everywhere. SchoolOS fixes this — one system, every stakeholder
+                        connected.
+                    </p>
+                    <p class="mb-8 text-base leading-relaxed" style="color:rgba(255,255,255,.5)">
+                        Now onboarding early partner schools ahead of full launch — join the waitlist to be first in
+                        line.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-3 mb-8">
+                        <div class="rounded-xl p-4 border border-white/10" style="background:rgba(255,255,255,.05)">
+                            <i class="ph ph-student text-xl mb-2 block" style="color:#7EB8F7"></i>
+                            <div class="text-sm font-semibold text-white">Student Records</div>
+                            <div class="text-xs mt-1" style="color:rgba(255,255,255,.45)">Every student's profile in one
+                                place</div>
+                        </div>
+                        <div class="rounded-xl p-4 border border-white/10" style="background:rgba(255,255,255,.05)">
+                            <i class="ph ph-file-text text-xl mb-2 block" style="color:#7EB8F7"></i>
+                            <div class="text-sm font-semibold text-white">Result Sheets</div>
+                            <div class="text-xs mt-1" style="color:rgba(255,255,255,.45)">Generate PDFs in seconds, not
+                                hours</div>
+                        </div>
+                        <div class="rounded-xl p-4 border border-white/10" style="background:rgba(255,255,255,.05)">
+                            <i class="ph ph-calendar-check text-xl mb-2 block" style="color:#7EB8F7"></i>
+                            <div class="text-sm font-semibold text-white">Attendance</div>
+                            <div class="text-xs mt-1" style="color:rgba(255,255,255,.45)">Daily tracking, instant parent
+                                alerts</div>
+                        </div>
+                        <div class="rounded-xl p-4 border border-white/10" style="background:rgba(255,255,255,.05)">
+                            <i class="ph ph-megaphone-simple text-xl mb-2 block" style="color:#7EB8F7"></i>
+                            <div class="text-sm font-semibold text-white">Announcements</div>
+                            <div class="text-xs mt-1" style="color:rgba(255,255,255,.45)">Admin to all stakeholders,
+                                instantly</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%27m%20interested%20in%20SchoolOS%20for%20my%20school!"
+                            target="_blank" class="btn-p text-sm"
+                            style="background:linear-gradient(135deg,#7EB8F7,#0EC4C4);color:#060F2E;">
+                            <i class="ph ph-buildings text-lg"></i> Join the Waitlist
+                        </a>
+                        <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%2C%20I%27d%20like%20a%20SchoolOS%20demo!"
+                            target="_blank" class="btn-o text-sm">
+                            Request a Demo <i class="ph ph-arrow-right text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="lg:w-[360px] shrink-0 sr">
+                    <div class="rounded-3xl p-8 border border-white/10" style="background:rgba(255,255,255,.05)">
+                        <h3 class="text-xl font-extrabold text-white mb-1" style="font-family:Syne,sans-serif;">Early
+                            Partner Program</h3>
+                        <p class="text-sm mb-7" style="color:rgba(255,255,255,.45)">We're onboarding a small number of
+                            schools before general availability.</p>
+
+                        <div class="rounded-2xl p-5 mb-6 border border-white/10"
+                            style="background:rgba(255,255,255,.06)">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#7EB8F7">What
+                                Happens Next</div>
+                            <div class="text-sm leading-relaxed" style="color:rgba(255,255,255,.65)">Join the waitlist
+                                and we'll reach out directly to discuss your school's needs, timeline, and exact pricing
+                                once a slot opens up.</div>
+                        </div>
+
+                        <ul class="space-y-3 text-sm" style="color:rgba(255,255,255,.65)">
+                            <li class="flex items-center gap-3"><i class="ph ph-check-circle shrink-0"
+                                    style="color:#0EC4C4"></i>Student records + result management</li>
+                            <li class="flex items-center gap-3"><i class="ph ph-check-circle shrink-0"
+                                    style="color:#0EC4C4"></i>PDF result sheet generation</li>
+                            <li class="flex items-center gap-3"><i class="ph ph-check-circle shrink-0"
+                                    style="color:#0EC4C4"></i>Attendance tracking</li>
+                            <li class="flex items-center gap-3"><i class="ph ph-check-circle shrink-0"
+                                    style="color:#0EC4C4"></i>Announcements board</li>
+                            <li class="flex items-center gap-3"><i class="ph ph-check-circle shrink-0"
+                                    style="color:#0EC4C4"></i>Dedicated setup and onboarding</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CODING N SCHOOLS B2B -->
+    <section id="b2b" class="py-24 bg-white sr">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 mb-14">
+                <div class="max-w-2xl">
+                    <span class="label mb-4">For Schools & Organisations</span>
+                    <h2 class="text-4xl lg:text-5xl font-extrabold mt-4 leading-tight"
+                        style="color:#060F2E;font-family:Syne,sans-serif;">
+                        Coding N Schools —<br><span class="gt">Tech in every classroom.</span>
+                    </h2>
+                    <p class="text-gray-500 text-lg mt-4 leading-relaxed">
+                        A B2B initiative that brings structured, hands-on technology education directly into schools —
+                        with full programme management, instructor support, and parent reporting.
+                    </p>
+                </div>
+                <a href="https://wa.me/message/CXXZKUTZKSDXI1?text=Hi%20Trustar%2C%20I%27m%20interested%20in%20Coding%20N%20Schools!"
+                    target="_blank" class="btn-dark shrink-0 text-sm">
+                    Partner with Us <i class="ph ph-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="b2b-card flex gap-5 items-start">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                        style="background:linear-gradient(135deg,#EAF3FF,#dbeafe)">
+                        <i class="ph ph-chalkboard-teacher text-xl" style="color:#1A56E8"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Curriculum
+                            Delivered</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">Full tech curriculum designed, delivered, and
+                            managed inside your school — aligned to your calendar.</p>
+                    </div>
+                </div>
+
+                <div class="b2b-card flex gap-5 items-start">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                        style="background:linear-gradient(135deg,#f0fdfa,#ccfbf1)">
+                        <i class="ph ph-user-check text-xl" style="color:#0EC4C4"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Certified
+                            Instructors</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">Vetted, trained instructors who teach with
+                            patience and focus on practical output from every student.</p>
+                    </div>
+                </div>
+
+                <div class="b2b-card flex gap-5 items-start">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                        style="background:linear-gradient(135deg,#fffbeb,#fef3c7)">
+                        <i class="ph ph-chart-line-up text-xl" style="color:#d97706"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Parent Progress
+                            Reports</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">Transparent progress updates and project links
+                            sent directly to parents to highlight real value.</p>
+                    </div>
+                </div>
+
+                <div class="b2b-card flex gap-5 items-start">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                        style="background:linear-gradient(135deg,#f3e8ff,#e9d5ff)">
+                        <i class="ph ph-browser text-xl" style="color:#9333ea"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-1" style="color:#060F2E;font-family:Syne,sans-serif;">Custom School
+                            Websites</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">Upgrade your school's digital presence with
+                            modern web development services tailored to your brand.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-24" style="background:#F8FBFF;">
+        <div class="max-w-4xl mx-auto px-5 lg:px-10">
+            <div class="text-center mb-14 sr">
+                <span class="label mb-3">Got Questions?</span>
+                <h2 class="text-4xl font-extrabold mt-3" style="color:#060F2E;font-family:Syne,sans-serif;">Frequently
+                    Asked Questions</h2>
+            </div>
+
+            <div class="space-y-4 sr">
+                <div class="border border-blue-100 rounded-2xl bg-white overflow-hidden">
+                    <button
+                        class="faq-btn w-full px-6 py-5 flex items-center justify-between text-left font-bold text-base"
+                        style="color:#060F2E;font-family:Syne,sans-serif;">
+                        <span>How do the online cohort classes work?</span>
+                        <i class="ph ph-caret-down text-xl faq-chevron"></i>
+                    </button>
+                    <div class="faq-body px-6 pb-5 text-gray-500 text-sm leading-relaxed">
+                        Our classes are live and online in small cohorts. Students meet regularly with an instructor and
+                        peers, complete hands-on exercises during the session, and work on real projects between
+                        classes.
+                    </div>
+                </div>
+
+                <div class="border border-blue-100 rounded-2xl bg-white overflow-hidden">
+                    <button
+                        class="faq-btn w-full px-6 py-5 flex items-center justify-between text-left font-bold text-base"
+                        style="color:#060F2E;font-family:Syne,sans-serif;">
+                        <span>What hardware or software does my child need to start?</span>
+                        <i class="ph ph-caret-down text-xl faq-chevron"></i>
+                    </button>
+                    <div class="faq-body px-6 pb-5 text-gray-500 text-sm leading-relaxed">
+                        All you need is a laptop or desktop computer with a stable internet connection. Most tools we
+                        use (like Scratch, replit, and web browsers) run directly in the browser without requiring heavy
+                        installations.
+                    </div>
+                </div>
+
+                <div class="border border-blue-100 rounded-2xl bg-white overflow-hidden">
+                    <button
+                        class="faq-btn w-full px-6 py-5 flex items-center justify-between text-left font-bold text-base"
+                        style="color:#060F2E;font-family:Syne,sans-serif;">
+                        <span>What is the Free Passion Test?</span>
+                        <i class="ph ph-caret-down text-xl faq-chevron"></i>
+                    </button>
+                    <div class="faq-body px-6 pb-5 text-gray-500 text-sm leading-relaxed">
+                        The Passion Test is a short assessment that helps identify a learner’s natural interest and
+                        aptitude — whether that’s visual storytelling, problem solving, logic, or building apps — so you
+                        can enroll in the track that fits best.
+                    </div>
+                </div>
+
+                <div class="border border-blue-100 rounded-2xl bg-white overflow-hidden">
+                    <button
+                        class="faq-btn w-full px-6 py-5 flex items-center justify-between text-left font-bold text-base"
+                        style="color:#060F2E;font-family:Syne,sans-serif;">
+                        <span>How can a school partner with Trustar for Coding N Schools?</span>
+                        <i class="ph ph-caret-down text-xl faq-chevron"></i>
+                    </button>
+                    <div class="faq-body px-6 pb-5 text-gray-500 text-sm leading-relaxed">
+                        Schools can reach out directly via WhatsApp or request a consultation. We provide full
+                        curriculum delivery, instructors, and integration with SchoolOS or custom school websites.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background:#060F2E;" class="text-white/70 py-16 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-5 lg:px-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                <div class="md:col-span-1">
+                    <a href="#" class="flex items-center gap-2 mb-4">
+                        <span class="font-bold text-2xl text-white" style="font-family:Syne,sans-serif;">Trustar<span
+                                style="color:#7EB8F7;">.</span></span>
+                    </a>
+                    <p class="text-sm leading-relaxed text-white/50">
+                        Practical technology education for learners aged 4 to adult. Real projects, real mentors, real
+                        credentials.
+                    </p>
+                </div>
+
+                <div>
+                    <h5 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Programs</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#pathways" class="hover:text-white transition-colors">Foundations (Ages 4-7)</a>
+                        </li>
+                        <li><a href="#pathways" class="hover:text-white transition-colors">Explorers (Ages 8-12)</a>
+                        </li>
+                        <li><a href="#pathways" class="hover:text-white transition-colors">Builders (Ages 13-17)</a>
+                        </li>
+                        <li><a href="#pathways" class="hover:text-white transition-colors">Software Dev (Engineers)</a>
+                        </li>
+                        <li><a href="#short-courses" class="hover:text-white transition-colors">Short Courses</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Solutions</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#b2b" class="hover:text-white transition-colors">Coding N Schools</a></li>
+                        <li><a href="#schoolos" class="hover:text-white transition-colors">SchoolOS Platform</a></li>
+                        <li><a href="#audience" class="hover:text-white transition-colors">For Businesses & Teams</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Get in Touch</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://wa.me/message/CXXZKUTZKSDXI1" target="_blank"
+                                class="hover:text-white transition-colors"><i
+                                    class="ph ph-whatsapp-logo text-lg inline align-middle mr-1"></i> WhatsApp
+                                Support</a></li>
+                        <li><a href="#passion-test" class="hover:text-white transition-colors">Take Passion Test</a>
+                        </li>
+                        <li><a href="/accounts/login/" class="hover:text-white transition-colors">Student Login</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                class="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 gap-4">
+                <p>&copy; 2026 Trustar Tech Institute. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-white/70 transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-white/70 transition-colors">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Navbar Scroll Class
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('nav');
+            if (window.scrollY > 40) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile Menu Toggle
+        const ham = document.getElementById('ham');
+        const mob = document.getElementById('mob');
+        if (ham && mob) {
+            ham.addEventListener('click', () => {
+                mob.classList.toggle('open');
+            });
+        }
+
+        // Audience Tabs Selector
+        const tabs = document.querySelectorAll('.aud-tab');
+        const panels = document.querySelectorAll('.aud-panel');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                panels.forEach(p => p.classList.remove('active'));
+
+                tab.classList.add('active');
+                const targetPanel = document.querySelector(`[data-panel="${tab.dataset.tab}"]`);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+            });
+        });
+
+        // FAQ Accordion Toggle
+        const faqBtns = document.querySelectorAll('.faq-btn');
+        faqBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const body = btn.nextElementSibling;
+                const icon = btn.querySelector('.faq-chevron');
+                if (body && icon) {
+                    body.classList.toggle('open');
+                    icon.classList.toggle('open');
+                }
+            });
+        });
+
+        // Scroll Reveal Intersection Observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in');
+                }
+            });
+        }, { threshold: 0.08 });
+
+        document.querySelectorAll('.sr').forEach(el => observer.observe(el));
+    </script>
+</body>
+
+</html>

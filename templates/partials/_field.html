@@ -1,0 +1,13 @@
+<!-- templates/partials/_field.html -->
+<div>
+    <label for="{{ field.id_for_label }}" class="block text-sm font-medium mb-1.5">
+        {{ field.label }}
+    </label>
+    {{ field }}
+    {% if field.help_text %}
+    <p class="text-xs text-navy/50 mt-1.5">{{ field.help_text }}</p>
+    {% endif %}
+    {% for error in field.errors %}
+    <p class="text-xs text-red-600 mt-1.5">{{ error }}</p>
+    {% endfor %}
+</div>

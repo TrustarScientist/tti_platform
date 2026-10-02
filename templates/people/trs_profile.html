@@ -1,0 +1,36 @@
+<!-- templates/people/trs_profile.html -->
+{% extends "base_app.html" %}
+{% block title %}{{ student.first_name }}'s TRS profile | Trustar{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+    <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
+    <h1 class="text-2xl font-bold mt-3">{{ student.first_name }}'s TRS profile</h1>
+
+    {% if rank %}
+    <div class="bg-navy text-white rounded-2xl p-6 mt-5 text-center">
+        <p class="text-xs uppercase tracking-widest text-baby">Current rank</p>
+        <p class="text-3xl font-bold mt-1">{{ rank }}</p>
+        <p class="text-sm text-white/60 mt-1">Overall score: {{ overall }}</p>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-6 text-center mt-5">
+        <p class="font-medium">No assessments verified yet</p>
+        <p class="text-sm text-navy/60 mt-1">Scores appear here once work has been reviewed.</p>
+    </div>
+    {% endif %}
+
+    <div class="grid gap-3 mt-5">
+        {% for row in rows %}
+        <div class="bg-white rounded-xl border border-[#dbeafe] p-4">
+            <div class="flex items-center justify-between">
+                <span class="font-medium text-sm">{{ row.dimension.name }}</span>
+                <span class="text-sm text-navy/60">{% if row.score != None %}{{ row.score }}{% else %}—{% endif %}</span>
+            </div>
+            <div class="h-2 bg-light rounded-full mt-2 overflow-hidden">
+                <div class="h-full bg-blue rounded-full" style="width: {{ row.score|default:0 }}%"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+<!-- templates/partials/_submit_button.html -->
+<button type="submit" class="btn-primary w-full">
+    <span class="submit-text">{{ label }}</span>
+    <span class="htmx-indicator items-center gap-2" aria-live="polite">
+        <i class="ph ph-circle-notch animate-spin"></i> {{ loading|default:"Please wait…" }}
+    </span>
+</button>

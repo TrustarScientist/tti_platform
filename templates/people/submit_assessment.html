@@ -1,0 +1,26 @@
+<!-- templates/people/submit_assessment.html -->
+{% extends "base_app.html" %}
+{% block title %}{{ assessment.title }} | Trustar{% endblock %}
+{% block content %}
+<div class="max-w-md">
+    <a href="{% url 'student-lesson' enrollment.pk %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to lesson</a>
+    <h1 class="text-2xl font-bold mt-3">{{ assessment.title }}</h1>
+    <p class="text-sm text-navy/60 mt-1 mb-6">
+        {% if assessment.requires_manual_review %}An instructor will check this before it counts.
+        {% else %}This is recorded as soon as you submit.{% endif %}
+    </p>
+
+    {% if form.non_field_errors %}
+    <div class="rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm px-4 py-3 mb-5">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl border border-[#dbeafe] p-6 space-y-5">
+        {% csrf_token %}
+        {% include "partials/_field.html" with field=form.notes %}
+        {% include "partials/_field.html" with field=form.media %}
+        {% include "partials/_submit_button.html" with label="Submit" loading="Submitting…" %}
+    </form>
+</div>
+{% endblock %}

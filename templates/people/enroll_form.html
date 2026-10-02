@@ -1,0 +1,35 @@
+<!-- templates/people/enroll_form.html -->
+{% extends "base_app.html" %}
+{% block title %}Enroll {{ student.first_name }} | Trustar{% endblock %}
+
+{% block content %}
+<div class="max-w-md">
+    <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
+    <h1 class="text-2xl font-bold mt-3">Enroll {{ student.first_name }}</h1>
+    <p class="text-sm text-navy/60 mt-1 mb-6">
+        Pick a track. We'll confirm payment and activate access — you'll get a message once it's active.
+    </p>
+
+    <form method="post" class="bg-white rounded-2xl border border-[#dbeafe] p-6 space-y-4">
+        {% csrf_token %}
+        {% for radio in form.track %}
+        <label class="relative block cursor-pointer">
+            <input type="radio" name="{{ radio.data.name }}" value="{{ radio.data.value }}"
+                id="{{ radio.id_for_label }}" class="peer sr-only" {% if radio.data.selected %}checked{% endif %}>
+            <span class="block rounded-xl border-[1.5px] border-[#cbd8ee] bg-white px-4 py-3 pr-11 transition peer-checked:border-blue peer-checked:bg-light">
+                <span class="flex items-baseline justify-between gap-3">
+                    <span class="text-sm font-medium">{{ radio.choice_label }}</span>
+                    <span class="text-sm font-bold text-blue shrink-0">&#8358;{{ radio.data.instance.price_naira }}</span>
+                </span>
+                {% if radio.data.instance.age_range %}
+                <span class="block text-xs text-navy/50 mt-0.5">Ages {{ radio.data.instance.age_range }}</span>
+                {% endif %}
+            </span>
+        </label>
+        {% endfor %}
+        {% for error in form.track.errors %}<p class="text-xs text-red-600">{{ error }}</p>{% endfor %}
+
+        {% include "partials/_submit_button.html" with label="Enroll" loading="Enrolling…" %}
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+<!-- templates/base_auth.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-[#F5F9FF]">
+    <a href="{% url 'index' %}" hx-boost="false" class="flex items-center gap-2.5 mb-8">
+        <img src="{% static 'img/tti-logo.png' %}" alt="" class="w-10 h-10 rounded-full object-cover" />
+        <span class="font-syne font-bold text-xl text-navy">Trustar<span class="text-baby">.</span></span>
+    </a>
+
+    <main id="main-content" class="w-full max-w-[440px]">
+        {% include "partials/_messages.html" %}
+        <div class="bg-white border border-[#dbeafe] rounded-2xl p-6 sm:p-8 shadow-[0_8px_30px_rgba(26,86,232,0.06)]">
+            {% block content %}{% endblock %}
+        </div>
+        {% block below_card %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

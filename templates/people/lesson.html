@@ -1,0 +1,41 @@
+<!-- templates/people/lesson.html -->
+{% extends "base_app.html" %}
+{% block title %}{{ enrollment.track.name }} | Trustar{% endblock %}
+{% block content %}
+<div class="max-w-2xl">
+    <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
+
+    {% if enrollment.status != 'ACTIVE' %}
+    <div class="mt-4 bg-white rounded-2xl border border-gold/60 p-6">
+        <h1 class="text-xl font-bold">Payment pending</h1>
+        <p class="text-sm text-navy/60 mt-1">Your enrollment in {{ enrollment.track.name }} is waiting on payment confirmation.</p>
+    </div>
+    {% elif lesson %}
+    <p class="text-xs font-medium text-blue uppercase tracking-wide mt-4">{{ enrollment.track.name }} — Lesson {{ lesson.position }}</p>
+    <h1 class="text-2xl font-bold mt-1">{{ lesson.title }}</h1>
+    <div class="bg-white rounded-2xl border border-[#dbeafe] p-6 mt-4 prose prose-sm max-w-none">
+        {% if lesson.video_url %}
+        <p><a href="{{ lesson.video_url }}" target="_blank" rel="noopener" class="text-blue font-medium">Watch the lesson video &rarr;</a></p>
+        {% endif %}
+        <p class="whitespace-pre-line">{{ lesson.content }}</p>
+    </div>
+
+    {% if enrollment.delivery_mode == 'COHORT' %}
+    <p class="text-sm text-navy/60 mt-4">Your whole batch moves together — your instructor will advance everyone once it's time.</p>
+    {% else %}
+    <form method="post" action="{% url 'student-lesson-complete' enrollment.pk %}" class="mt-5">
+        {% csrf_token %}
+        {% include "partials/_submit_button.html" with label="Mark this lesson complete" loading="Saving…" %}
+    </form>
+    {% endif %}
+    {% else %}
+    <div class="mt-4 bg-white rounded-2xl border border-dashed border-[#9db0d3] p-6 text-center">
+        {% if enrollment.status == 'COMPLETED' %}
+        <p class="font-medium">You've completed {{ enrollment.track.name }}! 🎉</p>
+        {% else %}
+        <p class="font-medium">No lessons have been added to this track yet.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

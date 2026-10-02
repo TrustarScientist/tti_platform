@@ -1,0 +1,42 @@
+<!-- templates/base_app.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col bg-[#F5F9FF]">
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-[#dbeafe]">
+        <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5">
+                <img src="{% static 'img/tti-logo.png' %}" alt="" class="w-9 h-9 rounded-full object-cover" />
+                <span class="font-syne font-bold text-lg text-navy">Trustar<span class="text-baby">.</span></span>
+            </a>
+
+            <div class="flex items-center gap-5">
+                <div class="hidden sm:block text-right leading-tight">
+                    <div class="text-sm font-medium">{{ user.first_name|default:user.email }}</div>
+                    <div class="text-xs text-navy/50">{{ user.get_role_display }}</div>
+                </div>
+        
+                <head>
+                    {% comment %}Plain full-page POST on purpose: logout lands on the standalone homepage.{% endcomment %}
+                    <form method="post" action="{% url 'logout' %}" hx-boost="false">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="text-sm font-medium text-navy/70 hover:text-navy underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-baby rounded">
+                            Log out
+                        </button>
+                    </form>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="flex-1 w-full max-w-3xl mx-auto px-4 py-8 sm:py-10">
+        {% include "partials/_messages.html" %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="py-6 text-center text-xs text-navy/40">
+        &copy; {% now "Y" %} Trustar Tech Institute
+    </footer>
+</div>
+{% endblock %}

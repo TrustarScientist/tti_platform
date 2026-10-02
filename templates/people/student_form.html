@@ -1,0 +1,21 @@
+<!-- templates/people/student_form.html (full replace) -->
+{% extends "base_app.html" %}
+{% block title %}Add {% if user.role == 'PARENT' %}child{% else %}student{% endif %} | Trustar{% endblock %}
+
+{% block content %}
+<div class="max-w-md">
+    <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
+    <h1 class="text-2xl font-bold mt-3">{% if user.role == 'PARENT' %}Add a child{% else %}Add a student{% endif %}</h1>
+    <p class="text-sm text-navy/60 mt-1 mb-6">You can create an invite code afterwards so they can log in on their own.</p>
+
+    <form method="post" class="bg-white rounded-2xl border border-[#dbeafe] p-6 space-y-5">
+        {% csrf_token %}
+        <div class="grid sm:grid-cols-2 gap-5">
+            {% include "partials/_field.html" with field=form.first_name %}
+            {% include "partials/_field.html" with field=form.last_name %}
+        </div>
+        {% include "partials/_field.html" with field=form.date_of_birth %}
+        {% include "partials/_submit_button.html" with label="Save" loading="Saving…" %}
+    </form>
+</div>
+{% endblock %}

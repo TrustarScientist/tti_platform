@@ -1,0 +1,66 @@
+<!-- templates/register.html (full replace) -->
+{% extends "base_auth.html" %}
+{% block title %}Create account | Trustar{% endblock %}
+<style>
+    @supports selector(:has(*)) {
+        #school-field { display: none; }
+        form:has(input[name="role"][value="SCHOOL_PARTNER"]:checked) #school-field { display: block; }
+    }
+</style>
+{% block content %}
+<h1 class="text-2xl font-bold">Create your account</h1>
+<p class="text-sm text-navy/60 mt-1 mb-6">Tell us how you'll use Trustar.</p>
+
+{% if form.non_field_errors %}
+<div class="rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm px-4 py-3 mb-5" role="alert">
+    {% for error in form.non_field_errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="space-y-5">
+    {% csrf_token %}
+
+    <fieldset>
+        <div id="school-field">
+            {% include "partials/_field.html" with field=form.school_name %}
+        </div>
+        <legend class="text-sm font-medium mb-2">I am a</legend>
+        <div class="grid gap-2.5">
+            {% for opt in form.role_options %}
+            <label class="relative block cursor-pointer">
+                <input type="radio" name="role" value="{{ opt.value }}" id="role-{{ opt.value }}"
+                    class="peer sr-only" {% if opt.checked %}checked{% endif %} required>
+                <span class="block rounded-xl border-[1.5px] border-[#cbd8ee] bg-white px-4 py-3 pr-11 transition peer-checked:border-blue peer-checked:bg-light peer-focus-visible:ring-4 peer-focus-visible:ring-baby/50">
+                    <span class="block text-sm font-medium">{{ opt.label }}</span>
+                    <span class="block text-xs text-navy/60 mt-0.5">{{ opt.hint }}</span>
+                </span>
+                <i class="ph ph-check-circle absolute top-3.5 right-3.5 text-xl text-blue opacity-0 peer-checked:opacity-100"></i>
+            </label>
+            {% endfor %}
+        </div>
+        {% for error in form.role.errors %}
+        <p class="text-xs text-red-600 mt-1.5">{{ error }}</p>
+        {% endfor %}
+    </fieldset>
+
+    <div class="grid sm:grid-cols-2 gap-5">
+        {% include "partials/_field.html" with field=form.first_name %}
+        {% include "partials/_field.html" with field=form.last_name %}
+    </div>
+    {% include "partials/_field.html" with field=form.email %}
+    {% include "partials/_field.html" with field=form.phone %}
+    {% include "partials/_field.html" with field=form.password1 %}
+    {% include "partials/_field.html" with field=form.password2 %}
+    {% include "partials/_field.html" with field=form.claim_code %}
+    {% include "partials/_submit_button.html" with label="Create account" %}
+</form>
+{% endblock %}
+
+{% block below_card %}
+<p class="text-center text-sm text-navy/60 mt-5">
+    Already have an account?
+    <a href="{% url 'login' %}" class="font-medium text-blue hover:underline">Log in</a>
+</p>
+{% endblock %}

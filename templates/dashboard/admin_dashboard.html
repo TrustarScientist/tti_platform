@@ -1,0 +1,48 @@
+<!-- templates/dashboard/admin_dashboard.html (full replace) -->
+{% extends "base_app.html" %}
+{% block title %}Admin | Trustar{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">School accounts waiting for review</h1>
+<p class="text-sm text-navy/60 mt-1 mb-6">
+    So far: {{ totals.parents }} parent{{ totals.parents|pluralize }},
+    {{ totals.students }} student profile{{ totals.students|pluralize }},
+    and {{ totals.schools }} approved school{{ totals.schools|pluralize }}.
+</p>
+
+{% if pending %}
+<ul class="space-y-3">
+    {% for partner in pending %}
+    <li class="bg-white rounded-2xl border border-gold/60 p-5">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div class="min-w-0">
+                <h2 class="text-lg font-bold">{{ partner.school_name|default:"No school name given" }}</h2>
+                <p class="text-sm mt-1">{{ partner.get_full_name }}</p>
+                <p class="text-sm text-navy/60 mt-1">
+                    <a href="mailto:{{ partner.email }}" class="hover:underline">{{ partner.email }}</a>
+                    {% if partner.phone %}<br><a href="tel:{{ partner.phone }}" class="hover:underline">{{ partner.phone }}</a>{% endif %}
+                </p>
+                <p class="text-xs text-navy/50 mt-2">Signed up {{ partner.date_joined|timesince }} ago</p>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <form method="post" action="{% url 'partner-decline' partner.pk %}" hx-confirm="Decline this school account? They won't be able to log in.">
+                    {% csrf_token %}
+                    <button type="submit" class="rounded-full border-[1.5px] border-red-300 text-red-700 hover:bg-red-50 px-5 py-2 text-sm font-medium">Decline</button>
+                </form>
+                <form method="post" action="{% url 'partner-approve' partner.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary !py-2 !px-5 !text-sm">Approve</button>
+                </form>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-8 text-center">
+    <p class="font-medium">No school accounts are waiting for review</p>
+    <p class="text-sm text-navy/60 mt-1">New school signups will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}

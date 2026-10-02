@@ -1,3 +1,4 @@
+# tti_platform/urls.py
 """
 URL configuration for tti_platform project.
 
@@ -19,6 +20,16 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls')),
+    path('', include('apps.core.urls')),
+    path('accounts/', include('apps.accounts.urls')),
+    path('students/', include('apps.people.urls')),
     
 ]
+
+
+# dev-only
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

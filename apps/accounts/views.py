@@ -1,0 +1,114 @@
+# apps/accounts/views.py (full replace)
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic import CreateView
+
+from django.core.mail import send_mail 
+from django.urls import reverse
+
+
+
+from .forms import SignupForm
+from .models import TUser
+
+
+class RegisterView(CreateView):
+    form_class = SignupForm
+    template_name = 'register.html'
+    success_url = reverse_lazy('login')
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.object
+
+        if user.role == TUser.Role.STUDENT:
+            from apps.people.services import attach_student_profile
+            attach_student_profile(user, form.cleaned_data.get('claim_code'))
+
+        if user.role == TUser.Role.SCHOOL_PARTNER:
+            messages.info(self.request, "Account created. It's pending admin approval before you can log in.")
+        else:
+            messages.info(self.request, "Registration successful! You can now log in.")
+
+        if self.request.headers.get("HX-Request"):
+            hx_response = HttpResponse()
+            hx_response["HX-Redirect"] = str(self.success_url)
+            return hx_response
+
+        return response
+
+
+class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == TUser.Role.ADMIN
+
+
+class PartnerDecisionView(AdminRequiredMixin, View):
+    """POST-only. Subclasses set new_status and result_text."""
+    new_status = None
+    result_text = ""
+
+    def post(self, request, pk):
+        partner = get_object_or_404(TUser, pk=pk, role=TUser.Role.SCHOOL_PARTNER)
+        label = partner.school_name or partner.get_full_name() or partner.email
+
+        if partner.status != TUser.Status.PENDING:
+            messages.info(request, f"{label} has already been reviewed.")
+            return redirect('dashboard')
+
+        partner.status = self.new_status
+        partner.save(update_fields=['status', 'is_active'])  # save() syncs is_active from status
+        messages.success(request, self.result_text.format(label=label))
+        return redirect('dashboard')
+
+
+class DeclinePartnerView(PartnerDecisionView):
+    new_status = TUser.Status.SUSPENDED
+    result_text = "{label} was declined and can't log in."
+
+
+class ApprovePartnerView(PartnerDecisionView):
+    new_status = TUser.Status.APPROVED
+    result_text = "{label} is approved and can now log in."
+
+    def post(self, request, pk):
+        partner = get_object_or_404(TUser, pk=pk, role=TUser.Role.SCHOOL_PARTNER)
+
+        if partner.status == TUser.Status.PENDING and partner.school_name:
+            from apps.people.models import School
+            school, _ = School.objects.get_or_create(
+                name__iexact=partner.school_name,
+                defaults={
+                    'name': partner.school_name,
+                    'contact_email': partner.email,
+                    'contact_phone': partner.phone or '',
+                },
+            )
+            partner.school = school
+
+        response = super().post(request, pk)
+
+        partner.refresh_from_db()
+        if partner.status == TUser.Status.APPROVED:
+            login_url = request.build_absolute_uri(reverse('login'))
+            send_mail(
+                subject="Your Trustar school account is approved",
+                message=(
+                    f"Hi {partner.first_name or ''},\n\n"
+                    f"{partner.school_name or 'Your account'} has been approved. "
+                    f"You can now log in here:\n{login_url}\n\n— Trustar Tech Institute"
+                ),
+                from_email=None,
+                recipient_list=[partner.email],
+                fail_silently=True,
+            )
+        return response

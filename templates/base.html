@@ -1,9 +1,11 @@
+<!-- templates/base.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1A56E8" />
     <title>{% block title %}Trustar Tech Institute{% endblock %}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,44 +14,72 @@
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
         rel="stylesheet" />
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
-
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
+        tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        blue: '#1A56E8',
+                        navy: { DEFAULT: '#060F2E', 800: '#0d1f5a' },
+                        blue: { DEFAULT: '#1A56E8', 600: '#1A56E8', 700: '#1445c4' },
                         baby: '#7EB8F7',
-                        navy: '#060F2E',
-                        gold: '#F5B400',
                         teal: '#0EC4C4',
+                        gold: '#F5B400',
                         light: '#EAF3FF',
+                    },
+                    fontFamily: {
+                        syne: ['Syne', 'sans-serif'],
+                        sans: ['DM Sans', 'sans-serif'],
                     }
                 }
             }
         };
+        // Loading feedback: progress bar + error toast
+        (function () {
+            var pending = 0, timer;
+            var root = document.documentElement;
+
+            function sync() { root.classList.toggle('is-loading', pending > 0); }
+            function toast(msg) {
+                var el = document.getElementById('toast');
+                if (!el) return;
+                el.textContent = msg;
+                el.classList.remove('hidden');
+                clearTimeout(timer);
+                timer = setTimeout(function () { el.classList.add('hidden'); }, 6000);
+            }
+
+            document.addEventListener('htmx:beforeSend', function () { pending++; sync(); });
+            document.addEventListener('htmx:afterRequest', function () { pending = Math.max(0, pending - 1); sync(); });
+
+            document.addEventListener('htmx:sendError', function () {
+                toast("Can't reach the server. Check your internet connection and try again.");
+            });
+            document.addEventListener('htmx:responseError', function (e) {
+                var s = e.detail.xhr.status;
+                toast(s === 403 ? "You don't have access to that page."
+                    : s === 404 ? "That page doesn't exist."
+                        : "Something went wrong on our side. Please try again.");
+            });
+        })();
+
+                // Copy buttons: any element with data-copy="..."
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-copy]');
+            if (!btn || !navigator.clipboard) return;
+            navigator.clipboard.writeText(btn.dataset.copy).then(function () {
+                var original = btn.textContent;
+                btn.textContent = 'Copied';
+                setTimeout(function () { btn.textContent = original; }, 1500);
+            });
+        });
+
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        html {
-            overflow-x: hidden;
-        }
-
         body {
             font-family: 'DM Sans', sans-serif;
-            background: #F0F6FF;
-            color: #111827;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            min-height: 100vh;
         }
 
         h1,
@@ -60,24 +90,121 @@
             font-family: 'Syne', sans-serif;
         }
 
-        :root {
-            --blue: #1A56E8;
-            --baby: #7EB8F7;
-            --navy: #060F2E;
-            --gold: #F5B400;
-            --teal: #0EC4C4;
-            --light: #EAF3FF;
+        /* Django-rendered controls ({{ field }}). 16px stops iOS zooming on focus. */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            border-radius: 0.75rem;
+            border: 1.5px solid #8296bd;
+            background: #fff;
+            color: #060F2E;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(6, 15, 46, .4);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #1A56E8;
+            box-shadow: 0 0 0 4px rgba(126, 184, 247, .45);
+        }
+
+        input[aria-invalid="true"],
+        select[aria-invalid="true"],
+        textarea[aria-invalid="true"] {
+            border-color: #dc2626;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            accent-color: #1A56E8;
+            width: 1rem;
+            height: 1rem;
+            cursor: pointer;
+        }
+
+        /* Primary action: same pill shape as the homepage, solid blue for contrast */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .8rem 1.75rem;
+            border-radius: 9999px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            background: #1A56E8;
+            color: #fff;
+            transition: background .2s, box-shadow .2s;
+        }
+
+        .btn-primary:hover {
+            background: #1445c4;
+            box-shadow: 0 8px 24px rgba(26, 86, 232, .25);
+        }
+
+        .btn-primary:focus-visible {
+            outline: 3px solid #7EB8F7;
+            outline-offset: 2px;
+        }
+
+        /* HTMX in-flight feedback (matters with a remote DB) */
+        .htmx-indicator {
+            display: none;
+        }
+
+        .htmx-request .htmx-indicator,
+        .htmx-request.htmx-indicator {
+            display: inline-flex;
+        }
+
+        .htmx-request .submit-text {
+            display: none;
+        }
+
+        .htmx-request button[type="submit"] {
+            opacity: .85;
+            cursor: wait;
+            pointer-events: none;
+        }
+        /* Global progress bar: visible during any HTMX request */
+#progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 100;
+    overflow: hidden; pointer-events: none; opacity: 0; transition: opacity .15s; }
+#progress::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
+    background: linear-gradient(90deg, #7EB8F7, #1A56E8); animation: progress-slide 1s ease-in-out infinite; }
+html.is-loading #progress { opacity: 1; }
+@keyframes progress-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="min-h-screen flex flex-col">
-    {% block content %}
-    {% endblock %}
+<body hx-boost="true" class="font-sans antialiased text-navy overflow-x-hidden max-w-[100vw]">
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow">Skip
+        to content</a>
 
-    {% block extra_scripts %}{% endblock %}
+    <div id="progress" aria-hidden="true"></div>
+    <div id="toast" role="alert"
+        class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] max-w-[90vw] rounded-xl bg-navy text-white text-sm px-4 py-3 shadow-lg">
+    </div>
+    
+    {% comment %} Fallback so any template not yet migrated still renders {% endcomment %}
+    {% block body %}{% block content %}{% endblock %}{% endblock %}
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>
