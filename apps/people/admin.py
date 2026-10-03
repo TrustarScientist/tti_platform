@@ -72,9 +72,10 @@ class EnrollmentAdmin(admin.ModelAdmin):
 # TRS related
 
 
+#  
 @admin.register(TRSDimension)
 class TRSDimensionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'default_weight', 'order', 'is_active')
+    list_display = ('name', 'code', 'order', 'is_active')
     ordering = ['order']
 
 

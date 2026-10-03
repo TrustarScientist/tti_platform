@@ -80,6 +80,11 @@ class Lesson(models.Model):
     def next(self):
         return Lesson.objects.filter(track=self.track, position__gt=self.position).order_by('position').first()
 
+    # markdown support for lesson content, so we can have code blocks, tables, etc.
+    def rendered_content(self):
+        import markdown
+        return markdown.markdown(self.content, extensions=['fenced_code', 'tables'])
+
 
 class Cohort(models.Model):
     """A named, dated batch. Only ever used for delivery_mode=COHORT enrollments."""
@@ -259,12 +264,9 @@ class Enrollment(models.Model):
 
 # TRS related
 class TRSDimension(models.Model):
-    """One of the 6 TRS dimensions. A real table, not hardcoded choices,
-    so weights can be tuned from admin without a migration."""
     code = models.SlugField(max_length=30, unique=True)
     name = models.CharField(max_length=50)
     description = models.TextField(blank=True)
-    default_weight = models.DecimalField(max_digits=5, decimal_places=2, help_text="Percent, e.g. 20.00")
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -273,7 +275,6 @@ class TRSDimension(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Assessment(models.Model):
     class Type(models.TextChoices):
@@ -352,14 +353,14 @@ class TRSScore(models.Model):
         return f"{self.student} — {self.dimension.name}: {self.score}"
 
 
-TRS_RANKS = [
-    (0, "Spark"), (20, "Maker"), (40, "Practitioner"), (60, "Specialist"), (80, "Industry Ready"),
+TRS_BANDS = [
+    (0, "Emerging"), (20, "Developing"), (40, "Proficient"), (60, "Advanced"), (80, "Exceptional"),
 ]  # thresholds are placeholders — yours to calibrate once real scores exist
 
 
-def trs_rank_for_score(overall_score):
-    rank = TRS_RANKS[0][1]
-    for threshold, name in TRS_RANKS:
-        if overall_score >= threshold:
-            rank = name
-    return rank
+def band_for(score):
+    band = TRS_BANDS[0][1]
+    for threshold, name in TRS_BANDS:
+        if score >= threshold:
+            band = name
+    return band

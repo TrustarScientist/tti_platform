@@ -5,30 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        h1{
-            height: 130px; width: 200px;border: 1px solid black;
-            background-color: aquamarine;padding: 2%;
+        .parent{
+            background-color: orangered;
+            padding: 1%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        div{
-            border: 1px solid blue;background-color: orangered;
-            margin: 2%;
+        .child{
+            height: 50px;
+            background-color: aqua;
+            margin: 1%;
+        }
+        h1{
+            display: flex;
+            justify-self: flex-end;
+            width: 60%;
         }
     </style>
 </head>
 <body>
-    <h1>
-        <div>child 1</div>
-        <div>child 2</div>
-        <div>child 3</div>
-    </h1>
-    <button>Click</button>
-    
-    <!-- <script>
-        let h1 = document.querySelector("h1");
-        let btn = document.querySelector("button");
-        btn.onclick = function (){
-            h1.style.backgroundColor = "tomato";
-        }
-    </script> -->
+    <section class="parent">
+        <div class="child">667</div>
+        <h1>
+            <div class="child">ddt</div>
+            <div class="child">e55ewqwq</div>
+            <div class="child">re</div>
+            <div class="child">67</div>
+        </h1>
+    </section>
 </body>
 </html>

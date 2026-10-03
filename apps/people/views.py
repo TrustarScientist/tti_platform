@@ -8,7 +8,7 @@ from django.http import HttpResponseForbidden
 from django.contrib import messages
 
 from apps.accounts.models import TUser
-from .models import Student, StudentGuardian
+from .models import Student, StudentGuardian, band_for
 from .forms import StudentForm
 from django.conf import settings
 from django.views.generic import FormView
@@ -19,9 +19,8 @@ from .forms import TrackChoiceForm, DeliveryChoiceForm
 
 from django.utils import timezone
 from .forms import AttemptForm
-from .models import Assessment, Attempt, TRSDimension, trs_rank_for_score, TRS_RANKS, TRSScore
-from .services import recompute_trs_score
-
+from .models import Assessment, Attempt, TRSDimension,TRSScore
+from .services import can_manage_student, recompute_trs_score
 
 
 
@@ -62,8 +61,9 @@ class EnrollTrackView(GuardianRequiredMixin, FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.student = get_object_or_404(Student, pk=kwargs['pk'])
-        if not StudentGuardian.objects.filter(student=self.student, guardian=request.user).exists():
-            return HttpResponseForbidden("You don't manage this student.")
+        # can you manage this student? (either your own account, or you're a guardian)
+        if not can_manage_student(request.user, self.student):
+            return HttpResponseForbidden("You don't have access to this student.")
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -208,17 +208,13 @@ class TRSProfileView(LoginRequiredMixin, View):
         dimensions = TRSDimension.objects.filter(is_active=True)
         scores = {s.dimension_id: s for s in student.trs_scores.all()}
 
-        rows, weighted_sum, total_weight = [], 0, 0
+        rows = []
         for dim in dimensions:
             score_obj = scores.get(dim.id)
-            rows.append({'dimension': dim, 'score': score_obj.score if score_obj else None})
-            if score_obj:
-                weighted_sum += float(score_obj.score) * float(dim.default_weight)
-                total_weight += float(dim.default_weight)
+            rows.append({
+                'dimension': dim,
+                'score': score_obj.score if score_obj else None,
+                'band': band_for(float(score_obj.score)) if score_obj else None,
+            })
 
-        overall = round(weighted_sum / total_weight, 1) if total_weight else None
-        rank = trs_rank_for_score(overall) if overall is not None else None
-
-        return render(request, 'people/trs_profile.html', {
-            'student': student, 'rows': rows, 'overall': overall, 'rank': rank,
-        })
+        return render(request, 'people/trs_profile.html', {'student': student, 'rows': rows})

@@ -17,7 +17,8 @@
         {% if lesson.video_url %}
         <p><a href="{{ lesson.video_url }}" target="_blank" rel="noopener" class="text-blue font-medium">Watch the lesson video &rarr;</a></p>
         {% endif %}
-        <p class="whitespace-pre-line">{{ lesson.content }}</p>
+        <!-- replacing the whitespace-pre-line paragraph -->
+        <div class="prose prose-sm max-w-none">{{ lesson.rendered_content|safe }}</div>
     </div>
 
     {% if enrollment.delivery_mode == 'COHORT' %}

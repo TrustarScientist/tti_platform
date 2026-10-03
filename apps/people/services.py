@@ -42,6 +42,7 @@ def verify_attempt(attempt, *, reviewer, score, notes=""):
     recompute_trs_score(attempt.enrollment.student, attempt.assessment.dimension)
 
 
+# recompute the TRS score for a student in a given dimension, based on all verified attempts.And delivery dimension is special — it only counts the latest verified attempt, not an average of all attempts.
 def recompute_trs_score(student, dimension):
     finalized = Attempt.objects.filter(
         enrollment__student=student,
@@ -49,16 +50,36 @@ def recompute_trs_score(student, dimension):
         status__in=[Attempt.Status.VERIFIED, Attempt.Status.AUTO_PASSED],
         score__isnull=False,
     )
+
+    if dimension.code == 'delivery':
+        # Snapshot-only — the current capstone state, not a history of every attempt.
+        latest = finalized.order_by('-reviewed_at', '-submitted_at').first()
+        if not latest:
+            return
+        pct = (Decimal(latest.score) / Decimal(latest.assessment.max_score)) * 100
+        TRSScore.objects.update_or_create(
+            student=student, dimension=dimension,
+            defaults={'score': round(pct, 2), 'attempt_count': 1},
+        )
+        return
+
     count = finalized.count()
     if count == 0:
         return
-
-    # Simple mean of normalized (score/max_score) attempts, as a percentage.
-    # Recency- or difficulty-weighting is a real future refinement, not v1.
     total_pct = sum(Decimal(a.score) / Decimal(a.assessment.max_score) for a in finalized)
     avg_pct = (total_pct / count) * 100
-
     TRSScore.objects.update_or_create(
         student=student, dimension=dimension,
         defaults={'score': round(avg_pct, 2), 'attempt_count': count},
     )
+
+# new addition
+# apps/people/services.py — add
+from .models import StudentGuardian
+
+
+def can_manage_student(user, student):
+    """True if this user is a guardian of this student, OR the student's own account."""
+    return student.user_id == user.id or StudentGuardian.objects.filter(
+        student=student, guardian=user
+    ).exists()
