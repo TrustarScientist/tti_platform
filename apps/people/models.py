@@ -110,13 +110,16 @@ class Cohort(models.Model):
             raise ValidationError("current_lesson must belong to this cohort's track.")
 
     def advance(self):
-        """Move the whole batch to the next lesson at once."""
         if self.current_lesson:
             nxt = self.current_lesson.next()
             if nxt:
                 self.current_lesson = nxt
                 self.save(update_fields=['current_lesson'])
                 return True
+            self.enrollments.filter(status=Enrollment.Status.ACTIVE).update(
+                status=Enrollment.Status.COMPLETED
+            )
+            return False
         return False
 
     def effective_lesson(self):
@@ -258,6 +261,26 @@ class Enrollment(models.Model):
         if not nxt:
             self.status = self.Status.COMPLETED
             self.save(update_fields=['status'])
+        return True
+
+    # dynamic resumption or update
+    @property
+    def has_more_lessons(self):
+        if self.delivery_mode == self.DeliveryMode.COHORT:
+            return False
+        lesson = self.current_lesson or self.track.lessons.order_by('position').first()
+        return bool(lesson and lesson.next())
+
+    def resume(self):
+        if self.status != self.Status.COMPLETED or self.delivery_mode == self.DeliveryMode.COHORT:
+            return False
+        current = self.current_lesson or self.track.lessons.order_by('position').first()
+        nxt = current.next() if current else None
+        if not nxt:
+            return False
+        self.current_lesson = nxt
+        self.status = self.Status.ACTIVE
+        self.save(update_fields=['current_lesson', 'status'])
         return True
 
 

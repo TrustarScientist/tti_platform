@@ -13,4 +13,6 @@ urlpatterns = [
     # TRS related
     path('learn/<int:enrollment_id>/assess/<int:assessment_id>/', views.SubmitAssessmentView.as_view(), name='student-submit-assessment'),
     path('<int:pk>/trs/', views.TRSProfileView.as_view(), name='student-trs-profile'),
+    # lesson resume
+    path('learn/<int:enrollment_id>/resume/', views.ResumeEnrollmentView.as_view(), name='student-resume-enrollment'),
 ]

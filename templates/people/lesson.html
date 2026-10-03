@@ -18,9 +18,16 @@
     </div>
 
     {% elif lesson %}
+    <!-- templates/people/lesson.html — replace just the COMPLETED banner block -->
     {% if enrollment.status == 'COMPLETED' %}
     <div class="bg-[#f0fdfa] border border-teal/40 rounded-2xl p-4 mt-4 mb-4">
         <p class="font-medium text-[#0e7490]">🎉 {{ enrollment.student.first_name }} has completed {{ enrollment.track.name }}!</p>
+        {% if can_resume %}
+        <form method="post" action="{% url 'student-resume-enrollment' enrollment.pk %}" class="mt-3">
+            {% csrf_token %}
+            <button type="submit" class="text-sm font-medium text-blue hover:underline">New lessons were added — continue &rarr;</button>
+        </form>
+        {% endif %}
     </div>
     {% endif %}
 

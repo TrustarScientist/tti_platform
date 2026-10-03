@@ -144,6 +144,7 @@ class LessonView(LoginRequiredMixin, View):
         return render(request, 'people/lesson.html', {
             'enrollment': enrollment, 'lesson': lesson,
             'is_owner': is_owner, 'assessment_rows': assessment_rows,
+            'can_resume': enrollment.status == Enrollment.Status.COMPLETED and enrollment.has_more_lessons,
         })
 
 # apps/people/views.py — replace MarkLessonCompleteView.post entirely
@@ -187,6 +188,16 @@ class SubmitAssessmentView(LoginRequiredMixin, View):
         self.assessment = get_object_or_404(Assessment, pk=kwargs['assessment_id'], track=self.enrollment.track)
         if self.enrollment.student.user_id != request.user.id:
             return HttpResponseForbidden("This isn't your enrollment.")
+        if self.enrollment.status != Enrollment.Status.ACTIVE:
+            messages.error(request, "This enrollment isn't active.")
+            return redirect('student-lesson', enrollment_id=self.enrollment.pk)
+        already_done = Attempt.objects.filter(
+            enrollment=self.enrollment, assessment=self.assessment,
+            status__in=[Attempt.Status.VERIFIED, Attempt.Status.AUTO_PASSED],
+        ).exists()
+        if already_done:
+            messages.info(request, "This has already been completed.")
+            return redirect('student-lesson', enrollment_id=self.enrollment.pk)
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, **kwargs):
@@ -241,3 +252,17 @@ class TRSProfileView(LoginRequiredMixin, View):
             })
 
         return render(request, 'people/trs_profile.html', {'student': student, 'rows': rows})
+
+
+class ResumeEnrollmentView(LoginRequiredMixin, View):
+    def post(self, request, enrollment_id):
+        enrollment = get_object_or_404(Enrollment, pk=enrollment_id)
+        is_owner = enrollment.student.user_id == request.user.id
+        is_guardian = StudentGuardian.objects.filter(student=enrollment.student, guardian=request.user).exists()
+        if not (is_owner or is_guardian):
+            return HttpResponseForbidden("You don't have access to this enrollment.")
+        if enrollment.resume():
+            messages.success(request, "New lessons are available — continuing where you left off.")
+        else:
+            messages.info(request, "No new lessons to resume yet.")
+        return redirect('student-lesson', enrollment_id=enrollment.pk)
