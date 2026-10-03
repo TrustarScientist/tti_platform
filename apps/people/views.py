@@ -130,7 +130,9 @@ class LessonView(LoginRequiredMixin, View):
         if not (is_owner or is_guardian):
             return HttpResponseForbidden("You don't have access to this enrollment.")
 
-        lesson = enrollment.effective_lesson if enrollment.status == Enrollment.Status.ACTIVE else None
+        lesson = None
+        if enrollment.status in (Enrollment.Status.ACTIVE, Enrollment.Status.COMPLETED):
+            lesson = enrollment.effective_lesson
         assessment_rows = []
         if lesson:
             for assessment in lesson.assessments.all():

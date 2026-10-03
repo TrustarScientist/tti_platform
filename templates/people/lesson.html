@@ -5,13 +5,26 @@
 <div class="max-w-2xl">
     <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
 
-    {% if enrollment.status != 'ACTIVE' %}
+    {% if enrollment.status == 'PENDING_PAYMENT' %}
     <div class="mt-4 bg-white rounded-2xl border border-gold/60 p-6">
         <h1 class="text-xl font-bold">Payment pending</h1>
         <p class="text-sm text-navy/60 mt-1">{{ enrollment.student.first_name }}'s enrollment in {{ enrollment.track.name }} is waiting on payment confirmation.</p>
     </div>
+
+    {% elif enrollment.status == 'CANCELLED' or enrollment.status == 'EXPIRED' %}
+    <div class="mt-4 bg-white rounded-2xl border border-[#dbeafe] p-6">
+        <h1 class="text-xl font-bold">{{ enrollment.get_status_display }}</h1>
+        <p class="text-sm text-navy/60 mt-1">This enrollment in {{ enrollment.track.name }} is no longer active.</p>
+    </div>
+
     {% elif lesson %}
-    <p class="text-xs font-medium text-blue uppercase tracking-wide mt-4">{{ enrollment.track.name }} — Lesson {{ lesson.position }}</p>
+    {% if enrollment.status == 'COMPLETED' %}
+    <div class="bg-[#f0fdfa] border border-teal/40 rounded-2xl p-4 mt-4 mb-4">
+        <p class="font-medium text-[#0e7490]">🎉 {{ enrollment.student.first_name }} has completed {{ enrollment.track.name }}!</p>
+    </div>
+    {% endif %}
+
+    <p class="text-xs font-medium text-blue uppercase tracking-wide">{{ enrollment.track.name }} — Lesson {{ lesson.position }}</p>
     <h1 class="text-2xl font-bold mt-1">{{ lesson.title }}</h1>
     <div class="bg-white rounded-2xl border border-[#dbeafe] p-6 mt-4 prose prose-sm max-w-none">
         {% if lesson.video_url %}
@@ -26,7 +39,7 @@
         <div class="bg-white rounded-xl border border-[#dbeafe] p-4 flex items-center justify-between gap-3">
             <span class="text-sm font-medium">{{ row.assessment.title }}</span>
             {% if not row.attempt or row.attempt.status == 'REJECTED' %}
-                {% if is_owner %}
+                {% if is_owner and enrollment.status == 'ACTIVE' %}
                 <a href="{% url 'student-submit-assessment' enrollment.pk row.assessment.pk %}" class="btn-primary !py-1.5 !px-4 !text-sm shrink-0">
                     {% if row.attempt %}Resubmit{% else %}Start{% endif %}
                 </a>
@@ -43,24 +56,22 @@
     </div>
     {% endif %}
 
-    {% if enrollment.delivery_mode == 'COHORT' %}
-    <p class="text-sm text-navy/60 mt-4">The whole batch moves together — the instructor advances everyone once it's time.</p>
-    {% elif not assessment_rows and is_owner %}
-    <form method="post" action="{% url 'student-lesson-complete' enrollment.pk %}" class="mt-5">
-        {% csrf_token %}
-        {% include "partials/_submit_button.html" with label="Mark this lesson complete" loading="Saving…" %}
-    </form>
-    {% elif assessment_rows and is_owner %}
-    <p class="text-sm text-navy/60 mt-4">Completing the assessment{{ assessment_rows|length|pluralize }} above moves to the next lesson automatically.</p>
+    {% if enrollment.status == 'ACTIVE' %}
+        {% if enrollment.delivery_mode == 'COHORT' %}
+        <p class="text-sm text-navy/60 mt-4">The whole batch moves together — the instructor advances everyone once it's time.</p>
+        {% elif not assessment_rows and is_owner %}
+        <form method="post" action="{% url 'student-lesson-complete' enrollment.pk %}" class="mt-5">
+            {% csrf_token %}
+            {% include "partials/_submit_button.html" with label="Mark this lesson complete" loading="Saving…" %}
+        </form>
+        {% elif assessment_rows and is_owner %}
+        <p class="text-sm text-navy/60 mt-4">Completing the assessment{{ assessment_rows|length|pluralize }} above moves to the next lesson automatically.</p>
+        {% endif %}
     {% endif %}
 
     {% else %}
     <div class="mt-4 bg-white rounded-2xl border border-dashed border-[#9db0d3] p-6 text-center">
-        {% if enrollment.status == 'COMPLETED' %}
-        <p class="font-medium">{{ enrollment.student.first_name }} has completed {{ enrollment.track.name }}! 🎉</p>
-        {% else %}
         <p class="font-medium">No lessons have been added to this track yet.</p>
-        {% endif %}
     </div>
     {% endif %}
 </div>
