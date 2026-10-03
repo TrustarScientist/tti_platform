@@ -62,6 +62,9 @@ Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("childr
             <a href="{% url 'student-trs-profile' student.pk %}" class="block text-xs text-blue hover:underline mt-1">
                 View TRS profile &rarr;
             </a>
+                        <a href="{% url 'student-lesson' enrollment.pk %}" class="block text-xs text-blue hover:underline mt-1">
+                View lessons &amp; progress &rarr;
+            </a>
             {% else %}
             <a href="{% url 'student-enroll' student.pk %}" class="text-sm font-medium text-blue hover:underline">Enroll in a track &rarr;</a>
             {% endif %}

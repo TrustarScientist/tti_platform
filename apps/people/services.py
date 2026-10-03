@@ -1,5 +1,5 @@
 # apps/people/services.py
-from .models import Student
+from .models import Student, Enrollment, Attempt
 
 
 def attach_student_profile(user, claim_code=None):
@@ -29,10 +29,7 @@ from .models import Attempt, TRSScore
 
 
 def verify_attempt(attempt, *, reviewer, score, notes=""):
-    """The one place an Attempt becomes final. Call this from the review
-    action — never set status/score directly anywhere else."""
     from django.utils import timezone
-
     attempt.score = score
     attempt.status = Attempt.Status.VERIFIED
     attempt.reviewed_by = reviewer
@@ -40,7 +37,26 @@ def verify_attempt(attempt, *, reviewer, score, notes=""):
     attempt.notes = notes
     attempt.save()
     recompute_trs_score(attempt.enrollment.student, attempt.assessment.dimension)
+    advance_if_lesson_complete(attempt.enrollment, attempt.assessment.lesson)
 
+# enrolment checks
+def advance_if_lesson_complete(enrollment, lesson):
+    """Call this whenever an Attempt is finalized. Advances the enrollment's
+    lesson pointer once every assessment on the current lesson is done."""
+    if lesson is None or enrollment.delivery_mode == Enrollment.DeliveryMode.COHORT:
+        return False
+    assessment_ids = set(lesson.assessments.values_list('id', flat=True))
+    if not assessment_ids:
+        return False
+    finalized_ids = set(
+        Attempt.objects.filter(
+            enrollment=enrollment, assessment_id__in=assessment_ids,
+            status__in=[Attempt.Status.VERIFIED, Attempt.Status.AUTO_PASSED],
+        ).values_list('assessment_id', flat=True)
+    )
+    if finalized_ids >= assessment_ids:
+        return enrollment.mark_current_lesson_complete()
+    return False
 
 # recompute the TRS score for a student in a given dimension, based on all verified attempts.And delivery dimension is special — it only counts the latest verified attempt, not an average of all attempts.
 def recompute_trs_score(student, dimension):

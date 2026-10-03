@@ -20,7 +20,7 @@ from .forms import TrackChoiceForm, DeliveryChoiceForm
 from django.utils import timezone
 from .forms import AttemptForm
 from .models import Assessment, Attempt, TRSDimension,TRSScore
-from .services import can_manage_student, recompute_trs_score
+from .services import advance_if_lesson_complete, can_manage_student, recompute_trs_score
 
 
 
@@ -121,15 +121,30 @@ class EnrollDeliveryView(GuardianRequiredMixin, FormView):
         return redirect('dashboard')
 
 
+# lesson view
 class LessonView(LoginRequiredMixin, View):
     def get(self, request, enrollment_id):
         enrollment = get_object_or_404(Enrollment, pk=enrollment_id)
-        if enrollment.student.user_id != request.user.id:
-            return HttpResponseForbidden("This isn't your enrollment.")
+        is_owner = enrollment.student.user_id == request.user.id
+        is_guardian = StudentGuardian.objects.filter(student=enrollment.student, guardian=request.user).exists()
+        if not (is_owner or is_guardian):
+            return HttpResponseForbidden("You don't have access to this enrollment.")
+
         lesson = enrollment.effective_lesson if enrollment.status == Enrollment.Status.ACTIVE else None
-        return render(request, 'people/lesson.html', {'enrollment': enrollment, 'lesson': lesson})
+        assessment_rows = []
+        if lesson:
+            for assessment in lesson.assessments.all():
+                attempt = (Attempt.objects
+                           .filter(enrollment=enrollment, assessment=assessment)
+                           .order_by('-submitted_at').first())
+                assessment_rows.append({'assessment': assessment, 'attempt': attempt})
 
+        return render(request, 'people/lesson.html', {
+            'enrollment': enrollment, 'lesson': lesson,
+            'is_owner': is_owner, 'assessment_rows': assessment_rows,
+        })
 
+# apps/people/views.py — replace MarkLessonCompleteView.post entirely
 class MarkLessonCompleteView(LoginRequiredMixin, View):
     def post(self, request, enrollment_id):
         enrollment = get_object_or_404(Enrollment, pk=enrollment_id)
@@ -138,9 +153,14 @@ class MarkLessonCompleteView(LoginRequiredMixin, View):
         if enrollment.status != Enrollment.Status.ACTIVE:
             messages.error(request, "This enrollment isn't active yet.")
             return redirect('dashboard')
+        lesson = enrollment.effective_lesson
+        if lesson and lesson.assessments.exists():
+            messages.error(request, "This lesson has an assessment to complete first.")
+            return redirect('student-lesson', enrollment_id=enrollment.pk)
         enrollment.mark_current_lesson_complete()
         messages.success(request, "Nice work! Moving to the next lesson.")
         return redirect('student-lesson', enrollment_id=enrollment.pk)
+
 
 class GenerateClaimCodeView(GuardianRequiredMixin, View):
     """POST-only: generate/regenerate an invite code for one of *my* students."""
@@ -189,6 +209,7 @@ class SubmitAssessmentView(LoginRequiredMixin, View):
             attempt.score = self.assessment.max_score
             attempt.save()
             recompute_trs_score(self.enrollment.student, self.assessment.dimension)
+            advance_if_lesson_complete(self.enrollment, self.assessment.lesson)
             messages.success(request, "Nice work — that's recorded.")
 
         return redirect('student-lesson', enrollment_id=self.enrollment.pk)

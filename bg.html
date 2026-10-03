@@ -8,31 +8,25 @@
         .parent{
             background-color: orangered;
             padding: 1%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            height: 10vh;
         }
-        .child{
-            height: 50px;
-            background-color: aqua;
-            margin: 1%;
-        }
-        h1{
-            display: flex;
-            justify-self: flex-end;
-            width: 60%;
-        }
+       
     </style>
 </head>
 <body>
-    <section class="parent">
-        <div class="child">667</div>
-        <h1>
-            <div class="child">ddt</div>
-            <div class="child">e55ewqwq</div>
-            <div class="child">re</div>
-            <div class="child">67</div>
-        </h1>
-    </section>
+    <section class="parent"> </section>
+    <button>Next Friend</button>
+    <script>
+        // arrays as a topic
+        let blessingFriends = ["John", "Peter", "James", "Paul"];
+        let nextFriendButton = document.querySelector("button");
+        let parentSection = document.querySelector(".parent");
+
+        nextFriendButton.onclick = function(){
+            parentSection.textContent = blessingFriends[0];
+        }
+
+        
+    </script>
 </body>
 </html>

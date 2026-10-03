@@ -1,4 +1,4 @@
-<!-- templates/people/lesson.html -->
+<!-- templates/people/lesson.html (full replace) -->
 {% extends "base_app.html" %}
 {% block title %}{{ enrollment.track.name }} | Trustar{% endblock %}
 {% block content %}
@@ -8,7 +8,7 @@
     {% if enrollment.status != 'ACTIVE' %}
     <div class="mt-4 bg-white rounded-2xl border border-gold/60 p-6">
         <h1 class="text-xl font-bold">Payment pending</h1>
-        <p class="text-sm text-navy/60 mt-1">Your enrollment in {{ enrollment.track.name }} is waiting on payment confirmation.</p>
+        <p class="text-sm text-navy/60 mt-1">{{ enrollment.student.first_name }}'s enrollment in {{ enrollment.track.name }} is waiting on payment confirmation.</p>
     </div>
     {% elif lesson %}
     <p class="text-xs font-medium text-blue uppercase tracking-wide mt-4">{{ enrollment.track.name }} — Lesson {{ lesson.position }}</p>
@@ -17,22 +17,47 @@
         {% if lesson.video_url %}
         <p><a href="{{ lesson.video_url }}" target="_blank" rel="noopener" class="text-blue font-medium">Watch the lesson video &rarr;</a></p>
         {% endif %}
-        <!-- replacing the whitespace-pre-line paragraph -->
-        <div class="prose prose-sm max-w-none">{{ lesson.rendered_content|safe }}</div>
+        <div>{{ lesson.rendered_content|safe }}</div>
     </div>
 
+    {% if assessment_rows %}
+    <div class="mt-5 space-y-3">
+        {% for row in assessment_rows %}
+        <div class="bg-white rounded-xl border border-[#dbeafe] p-4 flex items-center justify-between gap-3">
+            <span class="text-sm font-medium">{{ row.assessment.title }}</span>
+            {% if not row.attempt or row.attempt.status == 'REJECTED' %}
+                {% if is_owner %}
+                <a href="{% url 'student-submit-assessment' enrollment.pk row.assessment.pk %}" class="btn-primary !py-1.5 !px-4 !text-sm shrink-0">
+                    {% if row.attempt %}Resubmit{% else %}Start{% endif %}
+                </a>
+                {% else %}
+                <span class="text-xs text-navy/50 shrink-0">Not yet attempted</span>
+                {% endif %}
+            {% elif row.attempt.status == 'VERIFIED' or row.attempt.status == 'AUTO_PASSED' %}
+                <span class="text-xs font-medium text-[#0e7490] shrink-0"><i class="ph ph-check-circle"></i> Completed</span>
+            {% else %}
+                <span class="text-xs text-gold shrink-0"><i class="ph ph-clock"></i> Awaiting review</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if enrollment.delivery_mode == 'COHORT' %}
-    <p class="text-sm text-navy/60 mt-4">Your whole batch moves together — your instructor will advance everyone once it's time.</p>
-    {% else %}
+    <p class="text-sm text-navy/60 mt-4">The whole batch moves together — the instructor advances everyone once it's time.</p>
+    {% elif not assessment_rows and is_owner %}
     <form method="post" action="{% url 'student-lesson-complete' enrollment.pk %}" class="mt-5">
         {% csrf_token %}
         {% include "partials/_submit_button.html" with label="Mark this lesson complete" loading="Saving…" %}
     </form>
+    {% elif assessment_rows and is_owner %}
+    <p class="text-sm text-navy/60 mt-4">Completing the assessment{{ assessment_rows|length|pluralize }} above moves to the next lesson automatically.</p>
     {% endif %}
+
     {% else %}
     <div class="mt-4 bg-white rounded-2xl border border-dashed border-[#9db0d3] p-6 text-center">
         {% if enrollment.status == 'COMPLETED' %}
-        <p class="font-medium">You've completed {{ enrollment.track.name }}! 🎉</p>
+        <p class="font-medium">{{ enrollment.student.first_name }} has completed {{ enrollment.track.name }}! 🎉</p>
         {% else %}
         <p class="font-medium">No lessons have been added to this track yet.</p>
         {% endif %}

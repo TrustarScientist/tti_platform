@@ -4,7 +4,7 @@ from .models import Student, StudentGuardian, School
 from django.contrib import messages
 from .models import Track, Enrollment, Lesson, Cohort
 from .models import TRSDimension, Assessment, Attempt, TRSScore
-from .services import verify_attempt, recompute_trs_score
+from .services import advance_if_lesson_complete, verify_attempt, recompute_trs_score
 
 
 class StudentGuardianInline(admin.TabularInline):
@@ -106,6 +106,7 @@ class AttemptAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         if becoming_final and obj.score is not None:
             recompute_trs_score(obj.enrollment.student, obj.assessment.dimension)
+            advance_if_lesson_complete(obj.enrollment, obj.assessment.lesson)
 
     @admin.action(description="Verify selected (uses submitted score, or max score if blank)")
     def verify_as_passed(self, request, queryset):
