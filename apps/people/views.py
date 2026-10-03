@@ -21,6 +21,7 @@ from django.utils import timezone
 from .forms import AttemptForm
 from .models import Assessment, Attempt, TRSDimension,TRSScore
 from .services import advance_if_lesson_complete, can_manage_student, recompute_trs_score
+from django.core.exceptions import ValidationError
 
 
 
@@ -72,6 +73,9 @@ class EnrollTrackView(GuardianRequiredMixin, FormView):
     def form_valid(self, form):
         return redirect('student-enroll-delivery', pk=self.student.pk, track_id=form.cleaned_data['track'].pk)
 
+    def get_form(self, form_class=None):
+        return TrackChoiceForm(self.request.POST or None, student=self.student)
+
 
 class EnrollDeliveryView(GuardianRequiredMixin, FormView):
     template_name = 'people/enroll_delivery.html'
@@ -111,14 +115,12 @@ class EnrollDeliveryView(GuardianRequiredMixin, FormView):
             student=self.student, track=self.track, delivery_mode=delivery_mode, cohort=cohort,
             enrolled_by=self.request.user, school=getattr(self.request.user, 'school', None),
         )
-        enrollment.full_clean()
+        try:
+            enrollment.full_clean()
+        except ValidationError:
+            messages.error(self.request, f"{self.student.first_name} already has a live enrollment in {self.track.name}.")
+            return redirect('dashboard')
         enrollment.save()
-
-        messages.success(
-            self.request,
-            f"{self.student.first_name} is enrolled in {self.track.name}, pending payment confirmation."
-        )
-        return redirect('dashboard')
 
 
 # lesson view

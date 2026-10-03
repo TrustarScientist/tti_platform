@@ -1,4 +1,4 @@
-<!-- templates/partials/_ward_list.html -->
+<!-- templates/partials/_ward_list.html (full replace) -->
 {% comment %}
 Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("children"/"students").
 {% endcomment %}
@@ -21,77 +21,59 @@ Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("childr
         <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
                 <h2 class="text-lg font-bold truncate">{{ student.first_name }} {{ student.last_name }}</h2>
-
                 {% if state == 'claimed' %}
-                <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#0e7490]">
-                    <i class="ph ph-check-circle text-lg"></i> Has their own login
-                </p>
+                <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#0e7490]"><i class="ph ph-check-circle text-lg"></i> Has their own login</p>
                 {% elif state == 'invited' %}
-                <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#92400e]">
-                    <i class="ph ph-hourglass-medium text-lg"></i> Waiting for {{ student.first_name }} to sign up
-                </p>
+                <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#92400e]"><i class="ph ph-hourglass-medium text-lg"></i> Waiting for {{ student.first_name }} to sign up</p>
                 {% else %}
-                <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-navy/60">
-                    <i class="ph ph-user-circle text-lg"></i>
-                    {% if noun == 'child' %}Managed by you{% else %}Managed by your school{% endif %}
-                </p>
+                <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-navy/60"><i class="ph ph-user-circle text-lg"></i> {% if noun == 'child' %}Managed by you{% else %}Managed by your school{% endif %}</p>
                 {% endif %}
             </div>
-
             {% if state == 'managed' %}
             <form method="post" action="{% url 'student-generate-claim' student.pk %}" class="shrink-0">
                 {% csrf_token %}
-                <button type="submit" class="inline-flex items-center rounded-full border-[1.5px] border-blue text-blue px-4 py-1.5 text-sm font-medium hover:bg-light">
-                    Create invite code
-                </button>
+                <button type="submit" class="inline-flex items-center rounded-full border-[1.5px] border-blue text-blue px-4 py-1.5 text-sm font-medium hover:bg-light">Create invite code</button>
             </form>
             {% endif %}
         </div>
-        <div class="mt-4 pt-4 border-t border-[#eef3fb]">
-            {% with enrollment=student.enrollments.first %}
-            {% if enrollment %}
-            <p class="text-sm flex items-center gap-1.5">
-                {% if enrollment.status == 'ACTIVE' %}
-                <i class="ph ph-check-circle text-[#0e7490]"></i> Enrolled in {{ enrollment.track.name }}
-                {% elif enrollment.status == 'PENDING_PAYMENT' %}
-                <i class="ph ph-clock text-gold"></i> {{ enrollment.track.name }} — pending payment confirmation
-                {% else %}
-                <i class="ph ph-x-circle text-navy/40"></i> {{ enrollment.track.name }} — {{ enrollment.get_status_display }}
-                {% endif %}
-            </p>
-            <a href="{% url 'student-trs-profile' student.pk %}" class="block text-xs text-blue hover:underline mt-1">
-                View TRS profile &rarr;
-            </a>
-                        <a href="{% url 'student-lesson' enrollment.pk %}" class="block text-xs text-blue hover:underline mt-1">
-                View lessons &amp; progress &rarr;
-            </a>
-            {% else %}
-            <a href="{% url 'student-enroll' student.pk %}" class="text-sm font-medium text-blue hover:underline">Enroll in a track &rarr;</a>
-            {% endif %}
-            {% endwith %}
-        </div>
+
         {% if state == 'invited' %}
         <div class="mt-4 rounded-xl border border-gold/50 bg-[#FFFBEB] p-4">
             <p class="text-xs text-navy/60">Invite code</p>
             <p class="mt-1 font-mono text-lg tracking-wide break-all select-all">{{ student.claim_code }}</p>
             <div class="mt-3 flex flex-wrap items-center gap-2">
                 <button type="button" data-copy="{{ student.claim_code }}" class="inline-flex items-center rounded-full bg-navy text-white px-4 py-1.5 text-sm font-medium hover:bg-navy-800">Copy code</button>
-                <a href="https://wa.me/?text=Create%20your%20Trustar%20login%3A%20{{ signup_url|urlencode }}%20Invite%20code%3A%20{{ student.claim_code }}" target="_blank" rel="noopener" hx-boost="false" class="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-navy/30 px-4 py-1.5 text-sm font-medium hover:bg-white">
-                    <i class="ph ph-whatsapp-logo text-base"></i> Send on WhatsApp
-                </a>
+                <a href="https://wa.me/?text=Create%20your%20Trustar%20login%3A%20{{ signup_url|urlencode }}%20Invite%20code%3A%20{{ student.claim_code }}" target="_blank" rel="noopener" hx-boost="false" class="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-navy/30 px-4 py-1.5 text-sm font-medium hover:bg-white"><i class="ph ph-whatsapp-logo text-base"></i> Send on WhatsApp</a>
             </div>
             <p class="mt-3 text-xs text-navy/60">{{ student.first_name }} signs up as a student and enters this code to link to this profile.</p>
         </div>
         <form method="post" action="{% url 'student-generate-claim' student.pk %}" class="mt-3" hx-confirm="This replaces the current code. The old one will stop working.">
             {% csrf_token %}
-            <button type="submit" class="text-xs text-navy/50 hover:text-navy underline underline-offset-2">dg</button>
+            <button type="submit" class="text-xs text-navy/50 hover:text-navy underline underline-offset-2">Replace this code</button>
         </form>
         {% endif %}
+
+        <div class="mt-4 pt-4 border-t border-[#eef3fb] space-y-3">
+            {% for enrollment in student.enrollments.all %}
+            <div>
+                <p class="text-sm flex items-center gap-1.5">
+                    {% if enrollment.status == 'ACTIVE' %}<i class="ph ph-check-circle text-[#0e7490]"></i> Enrolled in {{ enrollment.track.name }}
+                    {% elif enrollment.status == 'PENDING_PAYMENT' %}<i class="ph ph-clock text-gold"></i> {{ enrollment.track.name }} — pending payment confirmation
+                    {% elif enrollment.status == 'COMPLETED' %}<i class="ph ph-check-circle text-[#0e7490]"></i> {{ enrollment.track.name }} — completed
+                    {% else %}<i class="ph ph-x-circle text-navy/40"></i> {{ enrollment.track.name }} — {{ enrollment.get_status_display }}{% endif %}
+                </p>
+                <a href="{% url 'student-lesson' enrollment.pk %}" class="block text-xs text-blue hover:underline mt-0.5">View lessons &amp; progress &rarr;</a>
+            </div>
+            {% endfor %}
+            <a href="{% url 'student-trs-profile' student.pk %}" class="block text-xs text-blue hover:underline">View TRS profile &rarr;</a>
+            <a href="{% url 'student-enroll' student.pk %}" class="block text-sm font-medium text-blue hover:underline">
+                {% if student.enrollments.all %}Enroll in another track{% else %}Enroll in a track{% endif %} &rarr;
+            </a>
+        </div>
     </li>
     {% endwith %}
     {% endfor %}
 </ul>
-
 {% else %}
 <div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-8 text-center">
     <p class="font-medium">No {{ plural }} added yet</p>

@@ -42,6 +42,14 @@ class TrackChoiceForm(forms.Form):
         empty_label=None, widget=forms.RadioSelect, label="Choose a track",
     )
 
+    def __init__(self, *args, student=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if student is not None:
+            live_track_ids = Enrollment.objects.filter(
+                student=student, status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
+            ).values_list('track_id', flat=True)
+            self.fields['track'].queryset = self.fields['track'].queryset.exclude(id__in=live_track_ids)
+
 
 class DeliveryChoiceForm(forms.Form):
     delivery = forms.ChoiceField(widget=forms.RadioSelect, label="Choose how to learn")

@@ -2,8 +2,17 @@
 {% extends "base_app.html" %}
 {% block title %}Your learning | Trustar{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-bold">Welcome back{% if profile %}, {{ profile.first_name }}{% endif %}</h1>
-<a href="{% url 'student-trs-profile' profile.pk %}" class="text-sm text-blue hover:underline">View my TRS profile &rarr;</a>
+<div class="flex items-center justify-between gap-4">
+    <h1 class="text-2xl font-bold">Welcome back{% if profile %}, {{ profile.first_name }}{% endif %}</h1>
+    {% if profile %}
+    <a href="{% url 'student-enroll' profile.pk %}" class="btn-primary !py-2 !px-4 !text-sm shrink-0">Enroll in a track</a>
+    {% endif %}
+</div>
+
+{% if profile %}
+<p class="text-sm mt-2"><a href="{% url 'student-trs-profile' profile.pk %}" class="text-blue hover:underline">View my TRS profile &rarr;</a></p>
+{% endif %}
+
 {% with enrollments=profile.enrollments.all %}
 {% if enrollments %}
 <div class="grid gap-3 mt-6">
@@ -27,7 +36,7 @@
 {% else %}
 <div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-8 text-center mt-6">
     <p class="font-medium">Not enrolled in anything yet</p>
-    <p class="text-sm text-navy/60 mt-1">Ask your parent or school to enroll you in a track.</p>
+    <p class="text-sm text-navy/60 mt-1">Click "Enroll in a track" above to get started.</p>
 </div>
 {% endif %}
 {% endwith %}
