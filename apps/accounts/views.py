@@ -112,3 +112,24 @@ class ApprovePartnerView(PartnerDecisionView):
                 fail_silently=True,
             )
         return response
+
+
+
+# apps/accounts/views.py — add
+from django.conf import settings
+from django.http import HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
+
+
+@staff_member_required
+def debug_email_settings(request):
+    return HttpResponse(
+        f"DEBUG={settings.DEBUG}<br>"
+        f"EMAIL_BACKEND={settings.EMAIL_BACKEND}<br>"
+        f"EMAIL_HOST={settings.EMAIL_HOST!r}<br>"
+        f"EMAIL_PORT={settings.EMAIL_PORT}<br>"
+        f"EMAIL_HOST_USER={settings.EMAIL_HOST_USER!r}<br>"
+        f"EMAIL_USE_TLS={settings.EMAIL_USE_TLS}<br>"
+        f"DEFAULT_FROM_EMAIL={settings.DEFAULT_FROM_EMAIL!r}<br>"
+        f"EMAIL_TIMEOUT={getattr(settings, 'EMAIL_TIMEOUT', None)}"
+    )
