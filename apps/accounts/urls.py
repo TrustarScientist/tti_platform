@@ -34,4 +34,5 @@ urlpatterns = [
     ), name='password_reset_complete'),
     # 
     path('debug-email-settings/', views.debug_email_settings, name='debug-email-settings'),
+    path('debug-password-reset-test/', views.debug_password_reset_test, name='debug-password-reset-test'),
 ]

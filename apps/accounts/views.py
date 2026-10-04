@@ -133,3 +133,36 @@ def debug_email_settings(request):
         f"DEFAULT_FROM_EMAIL={settings.DEFAULT_FROM_EMAIL!r}<br>"
         f"EMAIL_TIMEOUT={getattr(settings, 'EMAIL_TIMEOUT', None)}"
     )
+
+
+# apps/accounts/views.py — add
+from django.contrib.auth.forms import PasswordResetForm
+
+
+@staff_member_required
+def debug_password_reset_test(request):
+    email = request.GET.get('email', 'trustartechinstitute@gmail.com')
+    form = PasswordResetForm({'email': email})
+    output = []
+
+    if not form.is_valid():
+        return HttpResponse(f"Form invalid: {form.errors}")
+
+    users = list(form.get_users(email))
+    output.append(f"get_users() matched {len(users)} user(s): {[u.email for u in users]}")
+
+    if not users:
+        return HttpResponse("<br>".join(output))
+
+    try:
+        form.save(
+            request=request,
+            use_https=True,
+            email_template_name='auth/password_reset_email.txt',
+            subject_template_name='auth/password_reset_subject.txt',
+        )
+        output.append("form.save() completed without raising.")
+    except Exception as e:
+        output.append(f"form.save() RAISED: {type(e).__name__}: {e}")
+
+    return HttpResponse("<br>".join(output))
