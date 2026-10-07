@@ -8,9 +8,12 @@ Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("childr
         <h1 class="text-2xl font-bold">Your {{ plural }}</h1>
         <p class="text-sm text-navy/60 mt-1">Add each {{ noun }}, then create an invite code so they can log in on their own.</p>
     </div>
-    {% if wards %}
-    <a href="{% url 'student-add' %}" class="btn-primary shrink-0">Add {{ noun }}</a>
+    <div class="flex items-center gap-2 shrink-0">
+    {% if noun == 'child' %}
+    <a href="{% url 'student-link-child' %}" class="inline-flex items-center rounded-full border-[1.5px] border-blue text-blue px-4 py-2 text-sm font-medium hover:bg-light">Link with a code</a>
     {% endif %}
+    {% if wards %}<a href="{% url 'student-add' %}" class="btn-primary">Add {{ noun }}</a>{% endif %}
+</div>
 </div>
 
 {% if wards %}
@@ -69,6 +72,22 @@ Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("childr
             <a href="{% url 'student-enroll' student.pk %}" class="block text-sm font-medium text-blue hover:underline">
                 {% if student.enrollments.all %}Enroll in another track{% else %}Enroll in a track{% endif %} &rarr;
             </a>
+            <!-- gg -->
+                         {% if student.guardian_invite_code %}
+            <div class="rounded-xl border border-gold/50 bg-[#FFFBEB] p-3">
+                <p class="text-xs text-navy/60">Parent invite code (single use)</p>
+                <p class="mt-1 font-mono tracking-wide break-all select-all">{{ student.guardian_invite_code }}</p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                    <button type="button" data-copy="{{ student.guardian_invite_code }}" class="inline-flex items-center rounded-full bg-navy text-white px-3 py-1 text-xs font-medium">Copy code</button>
+                    <a href="https://wa.me/?text=Link%20{{ student.first_name|urlencode }}%20on%20Trustar.%20Sign%20up%20as%20a%20parent%2C%20choose%20Link%20with%20a%20code%2C%20and%20enter%3A%20{{ student.guardian_invite_code }}%20{{ signup_url|urlencode }}" target="_blank" rel="noopener" hx-boost="false" class="inline-flex items-center gap-1 rounded-full border border-navy/30 px-3 py-1 text-xs font-medium"><i class="ph ph-whatsapp-logo"></i> Send on WhatsApp</a>
+                </div>
+            </div>
+            {% else %}
+            <form method="post" action="{% url 'student-generate-guardian-invite' student.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-navy/50 hover:text-navy underline underline-offset-2">Invite a parent</button>
+            </form>
+            {% endif %}
         </div>
     </li>
     {% endwith %}
@@ -79,5 +98,9 @@ Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("childr
     <p class="font-medium">No {{ plural }} added yet</p>
     <p class="text-sm text-navy/60 mt-1 mb-5">Add your first {{ noun }} to get started.</p>
     <a href="{% url 'student-add' %}" class="btn-primary">Add {{ noun }}</a>
+        {% if noun == 'child' %}
+    <p class="text-sm text-navy/60 mt-5">Did your child's school already add them?</p>
+    <a href="{% url 'student-link-child' %}" class="text-sm font-medium text-blue hover:underline">Link a child with an invite code &rarr;</a>
+    {% endif %}
 </div>
 {% endif %}

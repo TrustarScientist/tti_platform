@@ -271,3 +271,43 @@ class ResumeEnrollmentView(LoginRequiredMixin, View):
         else:
             messages.info(request, "No new lessons to resume yet.")
         return redirect('student-lesson', enrollment_id=enrollment.pk)
+
+
+
+# apps/people/views.py
+from .forms import LinkChildForm
+
+
+class ParentRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == TUser.Role.PARENT
+
+
+class GenerateGuardianInviteView(GuardianRequiredMixin, View):
+    def post(self, request, pk):
+        student = get_object_or_404(Student, pk=pk)
+        if not StudentGuardian.objects.filter(student=student, guardian=request.user).exists():
+            return HttpResponseForbidden("You don't manage this student.")
+        student.generate_guardian_invite_code()
+        messages.success(request, f"Parent invite code created for {student.first_name}.")
+        return redirect('dashboard')
+
+
+class LinkChildView(ParentRequiredMixin, FormView):
+    form_class = LinkChildForm
+    template_name = 'people/link_child.html'
+    success_url = reverse_lazy('dashboard')
+
+    def form_valid(self, form):
+        student = form.student
+        link, created = StudentGuardian.objects.get_or_create(
+            student=student, guardian=self.request.user,
+            defaults={'relationship': StudentGuardian.Relationship.PARENT},
+        )
+        if created:
+            student.guardian_invite_code = None  # single use
+            student.save(update_fields=['guardian_invite_code'])
+            messages.success(self.request, f"{student.first_name} is now linked to your account.")
+        else:
+            messages.info(self.request, f"{student.first_name} is already linked to your account.")
+        return super().form_valid(form)

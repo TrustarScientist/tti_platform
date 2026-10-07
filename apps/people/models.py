@@ -150,6 +150,14 @@ class Student(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # apps/people/models.py — inside Student, next to claim_code
+    guardian_invite_code = models.CharField(max_length=32, unique=True, null=True, blank=True)
+
+    def generate_guardian_invite_code(self):
+        self.guardian_invite_code = secrets.token_urlsafe(12)
+        self.save(update_fields=['guardian_invite_code'])
+        return self.guardian_invite_code
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 

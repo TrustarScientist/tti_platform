@@ -15,4 +15,7 @@ urlpatterns = [
     path('<int:pk>/trs/', views.TRSProfileView.as_view(), name='student-trs-profile'),
     # lesson resume
     path('learn/<int:enrollment_id>/resume/', views.ResumeEnrollmentView.as_view(), name='student-resume-enrollment'),
+    # apps/people/urls.py
+    path('link/', views.LinkChildView.as_view(), name='student-link-child'),
+    path('<int:pk>/invite-parent/', views.GenerateGuardianInviteView.as_view(), name='student-generate-guardian-invite'),
 ]

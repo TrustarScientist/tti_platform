@@ -94,3 +94,17 @@ class AttemptForm(forms.ModelForm):
         self.fields['notes'].widget.attrs['rows'] = 4
         self.fields['media'].label = "Photo, video, or screenshot"
         self.fields['media'].required = bool(assessment and assessment.media_required)
+
+
+
+# lc
+class LinkChildForm(forms.Form):
+    code = forms.CharField(max_length=32, label="Parent invite code")
+
+    def clean_code(self):
+        code = self.cleaned_data['code'].strip()
+        student = Student.objects.filter(guardian_invite_code=code).first()
+        if not student:
+            raise forms.ValidationError("This code is invalid or has already been used.")
+        self.student = student
+        return code
