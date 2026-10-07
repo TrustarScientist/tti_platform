@@ -83,8 +83,8 @@ class EnrollDeliveryView(GuardianRequiredMixin, FormView):
     def dispatch(self, request, *args, **kwargs):
         self.student = get_object_or_404(Student, pk=kwargs['pk'])
         self.track = get_object_or_404(Track, pk=kwargs['track_id'], is_active=True)
-        if not StudentGuardian.objects.filter(student=self.student, guardian=request.user).exists():
-            return HttpResponseForbidden("You don't manage this student.")
+        if not can_manage_student(request.user, self.student):
+            return HttpResponseForbidden("You don't have access to this student.")
         return super().dispatch(request, *args, **kwargs)
 
     def get_form(self, form_class=None):

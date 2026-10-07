@@ -10,7 +10,6 @@
             padding: 1%;
             height: 10vh;
         }
-       
     </style>
 </head>
 <body>
@@ -18,11 +17,19 @@
     <button>Next Friend</button>
     <script>
         // your html file is a document, so you can use document.querySelector to select elements from it
-        const button = document.querySelector('button');
-        const parentSection = document.querySelector('.parent');
+        let button = document.querySelector('button');
+        let parentSection = document.querySelector('.parent');
+        let names = [
+            "dan",
+            "olivia",
+            "mike",
+        ]
+        let x = 0;
+
 
         button.onclick = function(){
-            parentSection.textContent = "Next Friend";
+            parentSection.textContent = names[x];
+            x = x + 1;
         }
     </script>
 </body>
