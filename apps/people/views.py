@@ -56,13 +56,14 @@ class StudentCreateView(GuardianRequiredMixin, CreateView):
 
 
 
-class EnrollTrackView(GuardianRequiredMixin, FormView):
+class EnrollTrackView(LoginRequiredMixin, FormView):
     form_class = TrackChoiceForm
     template_name = 'people/enroll_track.html'
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()  # logged-out visitors go to login
         self.student = get_object_or_404(Student, pk=kwargs['pk'])
-        # can you manage this student? (either your own account, or you're a guardian)
         if not can_manage_student(request.user, self.student):
             return HttpResponseForbidden("You don't have access to this student.")
         return super().dispatch(request, *args, **kwargs)
@@ -77,10 +78,12 @@ class EnrollTrackView(GuardianRequiredMixin, FormView):
         return TrackChoiceForm(self.request.POST or None, student=self.student)
 
 
-class EnrollDeliveryView(GuardianRequiredMixin, FormView):
+class EnrollDeliveryView(LoginRequiredMixin, FormView):
     template_name = 'people/enroll_delivery.html'
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
         self.student = get_object_or_404(Student, pk=kwargs['pk'])
         self.track = get_object_or_404(Track, pk=kwargs['track_id'], is_active=True)
         if not can_manage_student(request.user, self.student):

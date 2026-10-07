@@ -95,7 +95,8 @@ from .models import StudentGuardian
 
 
 def can_manage_student(user, student):
-    """True if this user is a guardian of this student, OR the student's own account."""
+    if not user.is_authenticated:
+        return False
     return student.user_id == user.id or StudentGuardian.objects.filter(
         student=student, guardian=user
     ).exists()
