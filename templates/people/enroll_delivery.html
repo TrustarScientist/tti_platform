@@ -7,24 +7,25 @@
     <h1 class="text-2xl font-bold mt-3">{{ track.name }}</h1>
     <p class="text-sm text-navy/60 mt-1 mb-6">Step 2 of 2 — choose how {{ student.first_name }} will learn.</p>
 
-    {% if form.non_field_errors %}
-    <div class="rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm px-4 py-3 mb-5">
-        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-    </div>
-    {% endif %}
-
+    {% if has_options %}
     <form method="post" class="bg-white rounded-2xl border border-[#dbeafe] p-6 space-y-4">
         {% csrf_token %}
         {% for radio in form.delivery %}
         <label class="relative block cursor-pointer">
-            <input type="radio" name="{{ radio.data.name }}" value="{{ radio.data.value }}"
-                id="{{ radio.id_for_label }}" class="peer sr-only" {% if radio.data.selected %}checked{% endif %}>
+            <input type="radio" name="{{ radio.data.name }}" value="{{ radio.data.value }}" id="{{ radio.id_for_label }}" class="peer sr-only" {% if radio.data.selected %}checked{% endif %}>
             <span class="block rounded-xl border-[1.5px] border-[#cbd8ee] bg-white px-4 py-3 transition peer-checked:border-blue peer-checked:bg-light">
                 <span class="text-sm font-medium">{{ radio.choice_label }}</span>
             </span>
         </label>
         {% endfor %}
-        {% include "partials/_submit_button.html" with label="Enroll" %}
+        {% for error in form.delivery.errors %}<p class="text-xs text-red-600">{{ error }}</p>{% endfor %}
+        {% include "partials/_submit_button.html" with label="Enroll" loading="Enrolling…" %}
     </form>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-6 text-center">
+        <p class="font-medium">No cohort is open for this programme yet</p>
+        <p class="text-sm text-navy/60 mt-1">Ask Trustar to open a cohort for your school, then try again.</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

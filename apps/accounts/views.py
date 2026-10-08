@@ -83,17 +83,14 @@ class ApprovePartnerView(PartnerDecisionView):
     def post(self, request, pk):
         partner = get_object_or_404(TUser, pk=pk, role=TUser.Role.SCHOOL_PARTNER)
 
-        if partner.status == TUser.Status.PENDING and partner.school_name:
+        if partner.status == TUser.Status.PENDING and partner.school_name and not partner.school_id:
             from apps.people.models import School
-            school, _ = School.objects.get_or_create(
-                name__iexact=partner.school_name,
-                defaults={
-                    'name': partner.school_name,
-                    'contact_email': partner.email,
-                    'contact_phone': partner.phone or '',
-                },
+            name = partner.school_name.strip()
+            school = School.objects.filter(name__iexact=name).first() or School.objects.create(
+                name=name, contact_email=partner.email, contact_phone=partner.phone or '',
             )
             partner.school = school
+            partner.save(update_fields=['school'])  # the line that was missing before
 
         response = super().post(request, pk)
 
@@ -102,20 +99,15 @@ class ApprovePartnerView(PartnerDecisionView):
             login_url = request.build_absolute_uri(reverse('login'))
             send_mail(
                 subject="Your Trustar school account is approved",
-                message=(
-                    f"Hi {partner.first_name or ''},\n\n"
-                    f"{partner.school_name or 'Your account'} has been approved. "
-                    f"You can now log in here:\n{login_url}\n\n— Trustar Tech Institute"
-                ),
-                from_email=None,
-                recipient_list=[partner.email],
-                fail_silently=True,
+                message=(f"Hi {partner.first_name or ''},\n\n"
+                         f"{partner.school_name or 'Your account'} has been approved. "
+                         f"You can now log in here:\n{login_url}\n\n— Trustar Tech Institute"),
+                from_email=None, recipient_list=[partner.email], fail_silently=True,
             )
         return response
 
 
-
-# apps/accounts/views.py — add
+# 
 from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.admin.views.decorators import staff_member_required
@@ -135,7 +127,7 @@ def debug_email_settings(request):
     )
 
 
-# apps/accounts/views.py — add
+# 
 from django.contrib.auth.forms import PasswordResetForm
 
 

@@ -20,7 +20,7 @@ from .forms import TrackChoiceForm, DeliveryChoiceForm
 from django.utils import timezone
 from .forms import AttemptForm
 from .models import Assessment, Attempt, TRSDimension,TRSScore
-from .services import advance_if_lesson_complete, can_manage_student, recompute_trs_score
+from .services import advance_if_lesson_complete, can_manage_student, recompute_trs_score, tracks_for, open_cohorts_for
 from django.core.exceptions import ValidationError
 
 
@@ -68,14 +68,19 @@ class EnrollTrackView(LoginRequiredMixin, FormView):
             return HttpResponseForbidden("You don't have access to this student.")
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form(self, form_class=None):
+        return TrackChoiceForm(self.request.POST or None, student=self.student, user=self.request.user)
+
     def get_context_data(self, **kwargs):
-        return {**super().get_context_data(**kwargs), 'student': self.student}
+        ctx = super().get_context_data(**kwargs)
+        ctx['student'] = self.student
+        ctx['has_tracks'] = ctx['form'].fields['track'].queryset.exists()
+        return ctx
 
     def form_valid(self, form):
         return redirect('student-enroll-delivery', pk=self.student.pk, track_id=form.cleaned_data['track'].pk)
 
-    def get_form(self, form_class=None):
-        return TrackChoiceForm(self.request.POST or None, student=self.student)
+    
 
 
 class EnrollDeliveryView(LoginRequiredMixin, FormView):
@@ -85,17 +90,18 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         self.student = get_object_or_404(Student, pk=kwargs['pk'])
-        self.track = get_object_or_404(Track, pk=kwargs['track_id'], is_active=True)
+        self.track = get_object_or_404(tracks_for(request.user), pk=kwargs['track_id'])
         if not can_manage_student(request.user, self.student):
             return HttpResponseForbidden("You don't have access to this student.")
         return super().dispatch(request, *args, **kwargs)
 
     def get_form(self, form_class=None):
-        return DeliveryChoiceForm(self.request.POST or None, track=self.track)
+        return DeliveryChoiceForm(self.request.POST or None, track=self.track, user=self.request.user)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['student'], ctx['track'] = self.student, self.track
+        ctx['has_options'] = bool(ctx['form'].fields['delivery'].choices)
         return ctx
 
     def form_valid(self, form):
@@ -104,7 +110,7 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
 
         if value.startswith('cohort:'):
             delivery_mode = Enrollment.DeliveryMode.COHORT
-            cohort = get_object_or_404(Cohort, pk=value.split(':')[1], track=self.track)
+            cohort = get_object_or_404(open_cohorts_for(self.request.user, self.track), pk=value.split(':')[1])
             taken = cohort.enrollments.filter(
                 status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
             ).count()
@@ -116,7 +122,8 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
 
         enrollment = Enrollment(
             student=self.student, track=self.track, delivery_mode=delivery_mode, cohort=cohort,
-            enrolled_by=self.request.user, school=getattr(self.request.user, 'school', None),
+            enrolled_by=self.request.user,
+            school=(cohort.school if cohort and cohort.school_id else getattr(self.request.user, 'school', None)),
         )
         try:
             enrollment.full_clean()
@@ -124,7 +131,8 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
             messages.error(self.request, f"{self.student.first_name} already has a live enrollment in {self.track.name}.")
             return redirect('dashboard')
         enrollment.save()
-
+        messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name}, pending payment confirmation.")
+        return redirect('dashboard')
 
 # lesson view
 class LessonView(LoginRequiredMixin, View):

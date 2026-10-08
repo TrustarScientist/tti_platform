@@ -1,5 +1,8 @@
 # apps/people/services.py
-from .models import Student, Enrollment, Attempt
+from .models import Track, Student, Enrollment, Attempt
+from django.db.models import Q
+from django.utils import timezone
+
 
 
 def attach_student_profile(user, claim_code=None):
@@ -89,8 +92,7 @@ def recompute_trs_score(student, dimension):
         defaults={'score': round(avg_pct, 2), 'attempt_count': count},
     )
 
-# new addition
-# apps/people/services.py — add
+# 
 from .models import StudentGuardian
 
 
@@ -100,3 +102,31 @@ def can_manage_student(user, student):
     return student.user_id == user.id or StudentGuardian.objects.filter(
         student=student, guardian=user
     ).exists()
+
+#
+
+
+def user_school(user):
+    return getattr(user, 'school', None)  # only school partners have one
+
+
+def open_cohorts_for(user, track):
+    """Cohorts of this track this user may enroll into right now."""
+    now = timezone.now()
+    school = user_school(user)
+    visible = Q(school__isnull=True)
+    if school is not None:
+        visible |= Q(school=school)
+    return (Cohort.objects.filter(track=track, is_active=True).filter(visible)
+            .filter(Q(enrollment_opens_at__isnull=True) | Q(enrollment_opens_at__lte=now))
+            .filter(Q(enrollment_closes_at__isnull=True) | Q(enrollment_closes_at__gte=now)))
+
+
+def tracks_for(user):
+    """Tracks this user should see in the enrollment picker."""
+    school = user_school(user)
+    q = Q(audience=Track.Audience.PUBLIC)
+    if school is not None:
+        q |= Q(audience=Track.Audience.SCHOOL, cohorts__school=school, cohorts__is_active=True)
+    return Track.objects.filter(is_active=True).filter(q).distinct()
+

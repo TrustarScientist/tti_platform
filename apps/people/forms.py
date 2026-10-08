@@ -5,6 +5,7 @@ from .models import Student,Track,Cohort, Enrollment
 from django.db.models import Q
 from django.utils import timezone
 from .models import Assessment, Attempt
+from .services import tracks_for, open_cohorts_for
 
 
 class StudentForm(forms.ModelForm):
@@ -35,51 +36,46 @@ class EnrollForm(forms.Form):
 # delivery
 
 
-
 class TrackChoiceForm(forms.Form):
-    track = forms.ModelChoiceField(
-        queryset=Track.objects.filter(is_active=True),
-        empty_label=None, widget=forms.RadioSelect, label="Choose a track",
-    )
+    track = forms.ModelChoiceField(queryset=Track.objects.none(), empty_label=None,
+                                   widget=forms.RadioSelect, label="Choose a track")
 
-    def __init__(self, *args, student=None, **kwargs):
+    def __init__(self, *args, student=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        qs = tracks_for(user) if user is not None else Track.objects.none()
         if student is not None:
-            live_track_ids = Enrollment.objects.filter(
+            live = Enrollment.objects.filter(
                 student=student, status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
             ).values_list('track_id', flat=True)
-            self.fields['track'].queryset = self.fields['track'].queryset.exclude(id__in=live_track_ids)
+            qs = qs.exclude(id__in=live)
+        self.fields['track'].queryset = qs
 
 
 class DeliveryChoiceForm(forms.Form):
     delivery = forms.ChoiceField(widget=forms.RadioSelect, label="Choose how to learn")
 
-    def __init__(self, *args, track=None, **kwargs):
+    def __init__(self, *args, track=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         choices = []
         if track is not None:
-            now = timezone.now()
-            open_cohorts = Cohort.objects.filter(track=track, is_active=True).filter(
-                Q(enrollment_opens_at__isnull=True) | Q(enrollment_opens_at__lte=now)
-            ).filter(
-                Q(enrollment_closes_at__isnull=True) | Q(enrollment_closes_at__gte=now)
-            )
-            for cohort in open_cohorts:
-                if cohort.capacity:
-                    taken = cohort.enrollments.filter(
-                        status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
-                    ).count()
-                    if taken >= cohort.capacity:
-                        continue
-                    label = f"{cohort.name} ({cohort.capacity - taken} seats left)"
-                else:
+            if track.offers_cohort:
+                for cohort in open_cohorts_for(user, track):
                     label = cohort.name
-                choices.append((f"cohort:{cohort.pk}", label))
-        choices.append(('ONE_ON_ONE', "One-on-one — paced by your instructor"))
-        choices.append(('SELF_PACED', "Self-paced — learn on your own schedule"))
+                    if cohort.capacity:
+                        taken = cohort.enrollments.filter(
+                            status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
+                        ).count()
+                        if taken >= cohort.capacity:
+                            continue
+                        label = f"{cohort.name} ({cohort.capacity - taken} seats left)"
+                    if cohort.schedule_note:
+                        label += f" — {cohort.schedule_note}"
+                    choices.append((f"cohort:{cohort.pk}", label))
+            if track.offers_one_on_one:
+                choices.append(('ONE_ON_ONE', "One-on-one — paced by your instructor"))
+            if track.offers_self_paced:
+                choices.append(('SELF_PACED', "Self-paced — learn on your own schedule"))
         self.fields['delivery'].choices = choices
-
-
 
 # TRS related
 class AttemptForm(forms.ModelForm):

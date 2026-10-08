@@ -36,16 +36,16 @@ class LessonInline(admin.TabularInline):
 
 @admin.register(Track)
 class TrackAdmin(admin.ModelAdmin):
-    list_display = ('name', 'kind', 'age_range', 'price_naira', 'is_active')
-    list_filter = ('kind', 'is_active')
+    list_display = ('name', 'kind', 'audience', 'age_range', 'price_naira', 'is_active')
+    list_filter = ('kind', 'audience', 'is_active')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [LessonInline]
 
 
 @admin.register(Cohort)
 class CohortAdmin(admin.ModelAdmin):
-    list_display = ('name', 'track', 'current_lesson', 'start_date', 'end_date', 'is_active')
-    list_filter = ('track', 'is_active')
+    list_display = ('name', 'track', 'school', 'current_lesson', 'start_date', 'end_date', 'is_active')
+    list_filter = ('track', 'school', 'is_active')
     actions = ['advance_batch']
 
     @admin.action(description="Advance selected cohorts to their next lesson")

@@ -65,7 +65,12 @@
 
     {% if enrollment.status == 'ACTIVE' %}
         {% if enrollment.delivery_mode == 'COHORT' %}
-        <p class="text-sm text-navy/60 mt-4">The whole batch moves together — the instructor advances everyone once it's time.</p>
+            <div class="bg-white rounded-xl border border-[#dbeafe] p-4 mt-4 text-sm">
+                <p class="font-medium">{{ enrollment.cohort.name }}</p>
+                {% if enrollment.cohort.schedule_note %}<p class="text-navy/60 mt-0.5">{{ enrollment.cohort.schedule_note }}</p>{% endif %}
+                {% if enrollment.cohort.meeting_url %}<a href="{{ enrollment.cohort.meeting_url }}" target="_blank" rel="noopener" hx-boost="false" class="inline-block mt-2 font-medium text-blue hover:underline">Join the live session &rarr;</a>{% endif %}
+                <p class="text-navy/60 mt-2">The whole batch moves together — the instructor advances everyone once it's time.</p>
+            </div>
         {% elif not assessment_rows and is_owner %}
         <form method="post" action="{% url 'student-lesson-complete' enrollment.pk %}" class="mt-5">
             {% csrf_token %}

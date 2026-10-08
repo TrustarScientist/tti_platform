@@ -52,11 +52,26 @@ class Track(models.Model):
     def __str__(self):
         return self.name
 
+    
+    class Audience(models.TextChoices):
+        PUBLIC = 'PUBLIC', 'Public'
+        SCHOOL = 'SCHOOL', 'School programme'
+
+    audience = models.CharField(max_length=10, choices=Audience.choices, default=Audience.PUBLIC,
+        help_text="School programmes are only visible to schools that have a cohort on them.")
+    offers_cohort = models.BooleanField(default=True)
+    offers_one_on_one = models.BooleanField(default=True)
+    offers_self_paced = models.BooleanField(default=True)
+
     def save(self, *args, **kwargs):
         if not self.slug:
             from django.utils.text import slugify
             self.slug = slugify(self.name)[:110]
+        if self.audience == self.Audience.SCHOOL:
+            self.offers_cohort, self.offers_one_on_one, self.offers_self_paced = True, False, False
         super().save(*args, **kwargs)
+
+    
 
 
 class Lesson(models.Model):
@@ -105,9 +120,18 @@ class Cohort(models.Model):
     def __str__(self):
         return self.name
 
+    # 
+    school = models.ForeignKey(School, on_delete=models.PROTECT, null=True, blank=True, related_name='cohorts',
+        help_text="Leave blank for a public cohort anyone can join. Set it to make the cohort private to that school.")
+    meeting_url = models.URLField(blank=True, help_text="Live session link. Shown only to active enrollments.")
+    schedule_note = models.CharField(max_length=200, blank=True, help_text='e.g. "Saturdays 10:00–11:30 WAT"')
+
     def clean(self):
         if self.current_lesson_id and self.current_lesson.track_id != self.track_id:
             raise ValidationError("current_lesson must belong to this cohort's track.")
+        if self.track_id and self.track.audience == Track.Audience.SCHOOL and not self.school_id:
+            raise ValidationError("A school programme's cohort must belong to a school.")
+    
 
     def advance(self):
         if self.current_lesson:
