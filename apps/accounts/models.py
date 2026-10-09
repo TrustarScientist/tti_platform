@@ -16,6 +16,7 @@ can 'upgrade' explicitly.
 
 students can ,potentially, be associated with several school partners and parents, but must be approved
 """
+
 class TUser(AbstractUser):
     email = models.EmailField(
         max_length=128, 
@@ -72,12 +73,25 @@ class TUser(AbstractUser):
     )
 
     def save(self, *args, **kwargs):
-    # Single source of truth: status drives is_active, so a PENDING or
-    # SUSPENDED account can never authenticate, no matter what else changes.
+        # status drives is_active (unchanged)
         if self.status in (self.Status.PENDING, self.Status.SUSPENDED):
             self.is_active = False
         elif self.status == self.Status.APPROVED:
             self.is_active = True
+
+        # An approved school partner always ends up attached to a School,
+        # whichever route approved them (queue button, Django admin, shell).
+        if (self.role == self.Role.SCHOOL_PARTNER and self.status == self.Status.APPROVED
+                and self.school_name and not self.school_id):
+            from apps.people.models import School
+            name = self.school_name.strip()
+            self.school = School.objects.filter(name__iexact=name).first() or School.objects.create(
+                name=name, contact_email=self.email, contact_phone=self.phone or '',
+            )
+            update_fields = kwargs.get('update_fields')
+            if update_fields is not None:  # the approve view saves with a restricted field list
+                kwargs['update_fields'] = set(update_fields) | {'school'}
+
         super().save(*args, **kwargs)
 
 
