@@ -2,6 +2,9 @@
 from .models import Track, Student, Enrollment, Attempt
 from django.db.models import Q
 from django.utils import timezone
+from decimal import Decimal
+
+from .models import Attempt, Cohort, Enrollment, StudentGuardian, Track, TRSScore
 
 
 
