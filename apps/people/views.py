@@ -109,6 +109,8 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
         return ctx
 
     def form_valid(self, form):
+        delivery_mode = form.cleaned_data['delivery']
+        cohort = form.cleaned_data.get('cohort')
         school_billed = bool(cohort and cohort.school_id)
         enrollment = Enrollment(
             student=self.student, track=self.track, delivery_mode=delivery_mode, cohort=cohort,
