@@ -20,4 +20,6 @@ urlpatterns = [
     path('<int:pk>/invite-parent/', views.GenerateGuardianInviteView.as_view(), name='student-generate-guardian-invite'),
     # apps/people/urls.py — add
     path('invoices/<int:pk>/', views.InvoiceView.as_view(), name='invoice-detail'),
+    # apps/people/urls.py — add
+    path('roster/', views.BulkRosterView.as_view(), name='student-bulk-roster'),
 ]

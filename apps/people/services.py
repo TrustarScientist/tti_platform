@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from decimal import Decimal
 
-from .models import Attempt, Cohort, Enrollment, StudentGuardian, Track, TRSScore
+from .models import Attempt, Cohort, Enrollment, Student, StudentGuardian, Track, TRSScore
 
 
 
@@ -133,3 +133,86 @@ def tracks_for(user):
         q |= Q(audience=Track.Audience.SCHOOL, cohorts__school=school, cohorts__is_active=True)
     return Track.objects.filter(is_active=True).filter(q).distinct()
 
+LIVE_STATUSES = [Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
+MAX_ROSTER = 60
+
+
+def school_cohorts_for(user):
+    """Open cohorts that belong to this school partner's school."""
+    school = user_school(user)
+    if school is None:
+        return Cohort.objects.none()
+    now = timezone.now()
+    return (Cohort.objects.filter(school=school, is_active=True)
+            .filter(Q(enrollment_opens_at__isnull=True) | Q(enrollment_opens_at__lte=now))
+            .filter(Q(enrollment_closes_at__isnull=True) | Q(enrollment_closes_at__gte=now))
+            .select_related('track'))
+
+
+def seats_left(cohort):
+    if not cohort.capacity:
+        return None
+    taken = cohort.enrollments.filter(status__in=LIVE_STATUSES).count()
+    return max(cohort.capacity - taken, 0)
+
+
+def parse_roster(text):
+    """Turn pasted text into [{'first','last'}]. Returns (rows, errors, notes)."""
+    rows, errors, notes, seen = [], [], [], set()
+    for number, raw in enumerate(text.splitlines(), start=1):
+        line = " ".join(raw.replace(",", " ").split())
+        if not line:
+            continue
+        parts = line.split(" ")
+        if len(parts) < 2:
+            errors.append(f'Line {number}: "{line}" needs a first and a last name.')
+            continue
+        first, last = parts[0], " ".join(parts[1:])
+        if len(first) > 100 or len(last) > 100:
+            errors.append(f"Line {number}: that name is too long.")
+            continue
+        key = (first.lower(), last.lower())
+        if key in seen:
+            notes.append(f"{first} {last} was listed twice, so it counts once.")
+            continue
+        seen.add(key)
+        rows.append({'first': first, 'last': last})
+    if len(rows) > MAX_ROSTER:
+        errors.append(f"Please add at most {MAX_ROSTER} students at a time.")
+    return rows, errors, notes
+
+
+def build_roster_plan(user, cohort, rows):
+    """Mark each row: new student / existing (will be enrolled) / already (skip)."""
+    existing = {(s.first_name.lower(), s.last_name.lower()): s
+                for s in Student.objects.filter(guardianships__guardian=user)}
+    live_ids = set(Enrollment.objects.filter(
+        track=cohort.track, status__in=LIVE_STATUSES, student__in=list(existing.values()),
+    ).values_list('student_id', flat=True))
+    plan = []
+    for row in rows:
+        student = existing.get((row['first'].lower(), row['last'].lower()))
+        if student is None:
+            kind = 'new'
+        elif student.pk in live_ids:
+            kind = 'already'
+        else:
+            kind = 'existing'
+        plan.append({**row, 'student': student, 'kind': kind})
+    return plan
+
+
+def enroll_in_school_cohort(student, cohort, enrolled_by):
+    """Active, school-billed enrollment. Returns (enrollment, created)."""
+    live = Enrollment.objects.filter(student=student, track=cohort.track, status__in=LIVE_STATUSES).first()
+    if live:
+        return live, False
+    enrollment = Enrollment(
+        student=student, track=cohort.track, delivery_mode=Enrollment.DeliveryMode.COHORT,
+        cohort=cohort, enrolled_by=enrolled_by, school=cohort.school,
+        billed_to=Enrollment.BilledTo.SCHOOL, status=Enrollment.Status.ACTIVE,
+        activated_at=timezone.now(),
+    )
+    enrollment.full_clean()
+    enrollment.save()
+    return enrollment, True

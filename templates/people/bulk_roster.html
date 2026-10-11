@@ -1,0 +1,65 @@
+<!-- templates/people/bulk_roster.html -->
+{% extends "base_app.html" %}
+{% block title %}Add a class list | Trustar{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+    <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
+    <h1 class="text-2xl font-bold mt-3">Add a class list</h1>
+    <p class="text-sm text-navy/60 mt-1 mb-6">One student per line, first name first. They are enrolled straight away and billed to {{ school.name }}.</p>
+
+    {% if errors %}
+    <div class="rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm px-4 py-3 mb-5" role="alert">
+        {% for error in errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if cohorts %}
+    <form method="post" class="bg-white rounded-2xl border border-[#dbeafe] p-6 space-y-5">
+        {% csrf_token %}
+        <div>
+            <label for="cohort" class="block text-sm font-medium mb-1.5">Cohort</label>
+            <select name="cohort" id="cohort">
+                {% for c in cohorts %}
+                <option value="{{ c.pk }}" {% if selected == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}{% if c.seats_left != None %} ({{ c.seats_left }} seats left){% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="names" class="block text-sm font-medium mb-1.5">Students</label>
+            <textarea name="names" id="names" rows="10" placeholder="Divine Steven&#10;Grace Okafor">{{ names }}</textarea>
+        </div>
+        {% include "partials/_submit_button.html" with label="Preview" loading="Checking…" %}
+    </form>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-6 text-center">
+        <p class="font-medium">No cohort is open for your school yet</p>
+        <p class="text-sm text-navy/60 mt-1">Ask Trustar to open one, then come back.</p>
+    </div>
+    {% endif %}
+
+    {% if plan %}
+    <div class="bg-white rounded-2xl border border-gold/60 p-6 mt-6">
+        <h2 class="font-bold">Check the list</h2>
+        <p class="text-sm text-navy/60 mt-1">{{ enroll_count }} will be enrolled in {{ preview_cohort.name }}{% if new_count %}, and {{ new_count }} new student profile{{ new_count|pluralize }} will be created{% endif %}.</p>
+        {% for note in notes %}<p class="text-xs text-navy/60 mt-1">{{ note }}</p>{% endfor %}
+        <ul class="mt-4 divide-y divide-[#eef3fb] text-sm">
+            {% for item in plan %}
+            <li class="py-2 flex items-center justify-between gap-3">
+                <span>{{ item.first }} {{ item.last }}</span>
+                <span class="text-xs text-navy/60">{% if item.kind == 'new' %}New student{% elif item.kind == 'existing' %}On your list, will be enrolled{% else %}Already enrolled, skipped{% endif %}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% if enroll_count %}
+        <form method="post" class="mt-5">
+            {% csrf_token %}
+            <input type="hidden" name="cohort" value="{{ preview_cohort.pk }}">
+            <input type="hidden" name="confirm" value="1">
+            <textarea name="names" class="hidden">{{ names }}</textarea>
+            {% include "partials/_submit_button.html" with label="Confirm and enroll" loading="Enrolling…" %}
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

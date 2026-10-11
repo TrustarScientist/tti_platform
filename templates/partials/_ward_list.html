@@ -13,6 +13,9 @@ Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("childr
     <a href="{% url 'student-link-child' %}" class="inline-flex items-center rounded-full border-[1.5px] border-blue text-blue px-4 py-2 text-sm font-medium hover:bg-light">Link with a code</a>
     {% endif %}
     {% if wards %}<a href="{% url 'student-add' %}" class="btn-primary">Add {{ noun }}</a>{% endif %}
+        {% if noun == 'student' %}
+    <a href="{% url 'student-bulk-roster' %}" class="inline-flex items-center rounded-full border-[1.5px] border-blue text-blue px-4 py-2 text-sm font-medium hover:bg-light">Add a class list</a>
+    {% endif %}
 </div>
 </div>
 

@@ -22,7 +22,9 @@ from .forms import AttemptForm
 from .models import Assessment, Attempt, TRSDimension,TRSScore
 from .services import advance_if_lesson_complete, can_manage_student, recompute_trs_score, tracks_for, open_cohorts_for
 from django.core.exceptions import ValidationError
-
+from django.db import transaction
+from .services import (can_manage_student, tracks_for, open_cohorts_for, parse_roster,
+                       build_roster_plan, school_cohorts_for, seats_left, enroll_in_school_cohort)
 from django.conf import settings
 from django.utils import timezone
 from .models import SchoolInvoice
@@ -360,3 +362,80 @@ class InvoiceView(LoginRequiredMixin, View):
         return render(request, 'people/invoice.html', {
             'invoice': invoice, 'payment_instructions': settings.INVOICE_PAYMENT_INSTRUCTIONS,
         })
+
+
+
+class SchoolPartnerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        u = self.request.user
+        return u.role == TUser.Role.SCHOOL_PARTNER and u.school_id is not None
+
+
+class BulkRosterView(SchoolPartnerRequiredMixin, View):
+    template_name = 'people/bulk_roster.html'
+
+    def _context(self, request, **extra):
+        cohorts = list(school_cohorts_for(request.user))
+        for c in cohorts:
+            c.seats_left = seats_left(c)
+        return {'cohorts': cohorts, 'school': request.user.school, **extra}
+
+    def get(self, request):
+        return render(request, self.template_name, self._context(request))
+
+    def post(self, request):
+        names = request.POST.get('names', '')
+        raw_id = request.POST.get('cohort', '')
+        cohort = school_cohorts_for(request.user).filter(pk=raw_id).first() if raw_id.isdigit() else None
+        ctx = self._context(request, names=names, selected=raw_id)
+
+        if cohort is None:
+            return render(request, self.template_name, {**ctx, 'errors': ["Choose a cohort."]})
+
+        rows, errors, notes = parse_roster(names)
+        if not rows and not errors:
+            errors.append("Add at least one student.")
+        if errors:
+            return render(request, self.template_name, {**ctx, 'errors': errors})
+
+        plan = build_roster_plan(request.user, cohort, rows)
+        to_enroll = [p for p in plan if p['kind'] != 'already']
+        left = seats_left(cohort)
+        if left is not None and len(to_enroll) > left:
+            msg = f"{cohort.name} has {left} seat(s) left, but {len(to_enroll)} students need one."
+            return render(request, self.template_name, {**ctx, 'errors': [msg]})
+
+        if request.POST.get('confirm') != '1':
+            return render(request, self.template_name, {
+                **ctx, 'plan': plan, 'notes': notes, 'preview_cohort': cohort,
+                'new_count': sum(1 for p in plan if p['kind'] == 'new'),
+                'enroll_count': len(to_enroll),
+            })
+
+        created_students = enrolled = 0
+        with transaction.atomic():
+            locked = Cohort.objects.select_for_update().get(pk=cohort.pk)
+            left = seats_left(locked)
+            if left is not None and len(to_enroll) > left:
+                messages.error(request, "Those seats were just taken. Please review the list again.")
+                return redirect('student-bulk-roster')
+            for item in plan:
+                if item['kind'] == 'already':
+                    continue
+                student = item['student']
+                if student is None:
+                    student = Student.objects.create(first_name=item['first'], last_name=item['last'])
+                    StudentGuardian.objects.create(
+                        student=student, guardian=request.user,
+                        relationship=StudentGuardian.Relationship.SCHOOL_PARTNER,
+                    )
+                    created_students += 1
+                _, created = enroll_in_school_cohort(student, locked, request.user)
+                enrolled += int(created)
+
+        messages.success(
+            request,
+            f"Added {created_students} new student(s) and enrolled {enrolled} in {cohort.name}, "
+            f"billed to {cohort.school.name}.",
+        )
+        return redirect('dashboard')
