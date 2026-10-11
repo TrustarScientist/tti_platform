@@ -148,6 +148,10 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL', 'Trustar Tech Institute <no-reply@trustartech.com.ng>'
 )
 
+
+# to be set in Render's Environment (single line), e.g. "Bank: ... | Account name: ... | Account no: ..."
+INVOICE_PAYMENT_INSTRUCTIONS = os.environ.get('INVOICE_PAYMENT_INSTRUCTIONS', 'Contact Trustar for payment details.')
+
 if IS_PRODUCTION:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True

@@ -6,6 +6,13 @@ from .models import Track, Enrollment, Lesson, Cohort
 from .models import TRSDimension, Assessment, Attempt, TRSScore
 from .services import advance_if_lesson_complete, verify_attempt, recompute_trs_score
 
+# 
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.html import format_html
+from .billing import issue_invoice, previous_month
+from .models import SchoolInvoice
+
 
 class StudentGuardianInline(admin.TabularInline):
     model = StudentGuardian
@@ -25,8 +32,21 @@ class SchoolAdmin(admin.ModelAdmin):
     list_display = ('name', 'referral_code', 'is_active', 'created_at')
     search_fields = ('name',)
 
+    actions = ['issue_last_month_invoice']
 
-# k
+    @admin.action(description="Issue invoice for last month")
+    def issue_last_month_invoice(self, request, queryset):
+        period = previous_month()
+        for school in queryset:
+            invoice, created = issue_invoice(school, period)
+            if invoice is None:
+                self.message_user(request, f"{school.name}: nothing billable for {period:%B %Y}.", messages.WARNING)
+            elif created:
+                self.message_user(request, f"{school.name}: issued {invoice.reference} for ₦{invoice.amount_naira:,}.", messages.SUCCESS)
+            else:
+                self.message_user(request, f"{school.name}: {invoice.reference} was already issued.", messages.INFO)
+
+
 
 class LessonInline(admin.TabularInline):
     model = Lesson
@@ -123,3 +143,26 @@ class AttemptAdmin(admin.ModelAdmin):
 class TRSScoreAdmin(admin.ModelAdmin):
     list_display = ('student', 'dimension', 'score', 'attempt_count', 'updated_at')
     list_filter = ('dimension',)
+
+
+
+@admin.register(SchoolInvoice)
+class SchoolInvoiceAdmin(admin.ModelAdmin):
+    list_display = ('reference', 'school', 'period', 'student_count', 'amount_naira', 'status', 'open_invoice')
+    list_filter = ('status', 'school')
+    readonly_fields = ('school', 'period', 'amount_naira', 'student_count', 'lines', 'issued_at', 'paid_at')
+    actions = ['mark_paid', 'mark_void']
+
+    @admin.display(description="Invoice")
+    def open_invoice(self, obj):
+        return format_html('<a href="{}">Open</a>', reverse('invoice-detail', args=[obj.pk]))
+
+    @admin.action(description="Mark selected as paid")
+    def mark_paid(self, request, queryset):
+        n = queryset.filter(status=SchoolInvoice.Status.ISSUED).update(status=SchoolInvoice.Status.PAID, paid_at=timezone.now())
+        self.message_user(request, f"{n} invoice(s) marked paid.", messages.SUCCESS)
+
+    @admin.action(description="Void selected (then re-issue if needed)")
+    def mark_void(self, request, queryset):
+        n = queryset.exclude(status=SchoolInvoice.Status.VOID).update(status=SchoolInvoice.Status.VOID)
+        self.message_user(request, f"{n} invoice(s) voided.", messages.SUCCESS)

@@ -39,6 +39,8 @@ def dashboard(request):
             'wards': wards,
             'signup_url': request.build_absolute_uri(reverse('signup')),
         }
+        if user.role == TUser.Role.SCHOOL_PARTNER and user.school_id:
+            context['invoices'] = user.school.invoices.exclude(status='VOID')[:6]
         return render(request, template, context)
 
     if user.role == TUser.Role.INSTRUCTOR:

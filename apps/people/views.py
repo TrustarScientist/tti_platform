@@ -23,6 +23,10 @@ from .models import Assessment, Attempt, TRSDimension,TRSScore
 from .services import advance_if_lesson_complete, can_manage_student, recompute_trs_score, tracks_for, open_cohorts_for
 from django.core.exceptions import ValidationError
 
+from django.conf import settings
+from django.utils import timezone
+from .models import SchoolInvoice
+
 
 
 class GuardianRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -105,25 +109,14 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
         return ctx
 
     def form_valid(self, form):
-        value = form.cleaned_data['delivery']
-        cohort = None
-
-        if value.startswith('cohort:'):
-            delivery_mode = Enrollment.DeliveryMode.COHORT
-            cohort = get_object_or_404(open_cohorts_for(self.request.user, self.track), pk=value.split(':')[1])
-            taken = cohort.enrollments.filter(
-                status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
-            ).count()
-            if cohort.capacity and taken >= cohort.capacity:
-                messages.error(self.request, "That batch just filled up. Please choose another option.")
-                return self.form_invalid(form)
-        else:
-            delivery_mode = value
-
+        school_billed = bool(cohort and cohort.school_id)
         enrollment = Enrollment(
             student=self.student, track=self.track, delivery_mode=delivery_mode, cohort=cohort,
             enrolled_by=self.request.user,
-            school=(cohort.school if cohort and cohort.school_id else getattr(self.request.user, 'school', None)),
+            school=(cohort.school if school_billed else getattr(self.request.user, 'school', None)),
+            billed_to=Enrollment.BilledTo.SCHOOL if school_billed else Enrollment.BilledTo.FAMILY,
+            status=Enrollment.Status.ACTIVE if school_billed else Enrollment.Status.PENDING_PAYMENT,
+            activated_at=timezone.now() if school_billed else None,
         )
         try:
             enrollment.full_clean()
@@ -131,8 +124,14 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
             messages.error(self.request, f"{self.student.first_name} already has a live enrollment in {self.track.name}.")
             return redirect('dashboard')
         enrollment.save()
-        messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name}, pending payment confirmation.")
+
+        if school_billed:
+            messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name} — billed to {cohort.school.name}.")
+        else:
+            messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name}, pending payment confirmation.")
         return redirect('dashboard')
+
+
 
 # lesson view
 class LessonView(LoginRequiredMixin, View):
@@ -319,3 +318,16 @@ class LinkChildView(ParentRequiredMixin, FormView):
         else:
             messages.info(self.request, f"{student.first_name} is already linked to your account.")
         return super().form_valid(form)
+
+
+class InvoiceView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        invoice = get_object_or_404(SchoolInvoice.objects.select_related('school'), pk=pk)
+        user = request.user
+        is_staff = user.is_staff or user.role == TUser.Role.ADMIN
+        is_own_school = user.role == TUser.Role.SCHOOL_PARTNER and user.school_id == invoice.school_id
+        if not (is_staff or is_own_school):
+            return HttpResponseForbidden("You don't have access to this invoice.")
+        return render(request, 'people/invoice.html', {
+            'invoice': invoice, 'payment_instructions': settings.INVOICE_PAYMENT_INSTRUCTIONS,
+        })

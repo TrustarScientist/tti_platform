@@ -3,6 +3,8 @@ import secrets
 from django.conf import settings
 from django.db import models
 import secrets
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class School(models.Model):
@@ -141,7 +143,7 @@ class Cohort(models.Model):
                 self.save(update_fields=['current_lesson'])
                 return True
             self.enrollments.filter(status=Enrollment.Status.ACTIVE).update(
-                status=Enrollment.Status.COMPLETED
+                status=Enrollment.Status.COMPLETED, ended_at=timezone.now()
             )
             return False
         return False
@@ -315,6 +317,27 @@ class Enrollment(models.Model):
         self.save(update_fields=['current_lesson', 'status'])
         return True
 
+    class BilledTo(models.TextChoices):
+        FAMILY = 'FAMILY', 'Family pays'
+        SCHOOL = 'SCHOOL', 'Billed to school'
+
+    TERMINAL_STATUSES = (Status.COMPLETED, Status.CANCELLED, Status.EXPIRED)
+
+    billed_to = models.CharField(max_length=10, choices=BilledTo.choices, default=BilledTo.FAMILY)
+    ended_at = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # ended_at follows status, so every route (admin, views, resume) keeps it right.
+        update_fields = kwargs.get('update_fields')
+        changed = False
+        if self.status in self.TERMINAL_STATUSES and self.ended_at is None:
+            self.ended_at, changed = timezone.now(), True
+        elif self.status not in self.TERMINAL_STATUSES and self.ended_at is not None:
+            self.ended_at, changed = None, True
+        if changed and update_fields is not None:
+            kwargs['update_fields'] = set(update_fields) | {'ended_at'}
+        super().save(*args, **kwargs)
+
 
 
 # TRS related
@@ -419,3 +442,38 @@ def band_for(score):
         if score >= threshold:
             band = name
     return band
+
+
+
+
+
+class SchoolInvoice(models.Model):
+    class Status(models.TextChoices):
+        ISSUED = 'ISSUED', 'Issued'
+        PAID = 'PAID', 'Paid'
+        VOID = 'VOID', 'Void'
+
+    school = models.ForeignKey(School, on_delete=models.PROTECT, related_name='invoices')
+    period = models.DateField(help_text="First day of the billed month.")
+    amount_naira = models.PositiveIntegerField()
+    student_count = models.PositiveIntegerField()
+    lines = models.JSONField(default=list)  # frozen snapshot: price changes never rewrite old invoices
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ISSUED)
+    issued_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-period', 'school__name']
+        constraints = [
+            models.UniqueConstraint(fields=['school', 'period'], condition=~models.Q(status='VOID'),
+                                    name='one_live_invoice_per_school_month'),
+        ]
+
+    @property
+    def reference(self):
+        return f"INV-{self.period:%Y%m}-{self.pk:04d}"
+
+    def __str__(self):
+        return f"{self.reference} — {self.school}"
+
+    

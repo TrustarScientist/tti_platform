@@ -18,4 +18,6 @@ urlpatterns = [
     # apps/people/urls.py
     path('link/', views.LinkChildView.as_view(), name='student-link-child'),
     path('<int:pk>/invite-parent/', views.GenerateGuardianInviteView.as_view(), name='student-generate-guardian-invite'),
+    # apps/people/urls.py — add
+    path('invoices/<int:pk>/', views.InvoiceView.as_view(), name='invoice-detail'),
 ]

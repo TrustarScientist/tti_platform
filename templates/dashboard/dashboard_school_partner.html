@@ -3,4 +3,15 @@
 {% block title %}Your students | Trustar{% endblock %}
 {% block content %}
 {% include "partials/_ward_list.html" with noun="student" plural="students" %}
+{% if invoices %}
+<h2 class="text-lg font-bold mt-10 mb-3">Invoices</h2>
+<ul class="space-y-2">
+    {% for inv in invoices %}
+    <li class="bg-white rounded-xl border border-[#dbeafe] p-4 flex items-center justify-between gap-3">
+        <a href="{% url 'invoice-detail' inv.pk %}" class="font-medium text-blue hover:underline">{{ inv.period|date:"F Y" }}</a>
+        <span class="text-sm text-navy/60">&#8358;{{ inv.amount_naira|floatformat:"0g" }} · {{ inv.get_status_display }}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 {% endblock %}

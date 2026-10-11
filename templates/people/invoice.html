@@ -1,0 +1,53 @@
+<!-- templates/people/invoice.html -->
+{% extends "base.html" %}
+{% block title %}{{ invoice.reference }} | Trustar{% endblock %}
+{% block body %}
+<div class="min-h-screen bg-[#F5F9FF] print:bg-white py-8 px-4">
+    <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-between mb-4 print:hidden">
+            <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back</a>
+            <button type="button" onclick="window.print()" class="btn-primary !py-2 !px-4 !text-sm">Print or save as PDF</button>
+        </div>
+        <div class="bg-white rounded-2xl border border-[#dbeafe] p-8 print:border-0 print:p-0">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="font-syne font-bold text-xl">Trustar Tech Institute</p>
+                    <p class="text-sm text-navy/60">Coding N Schools</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-navy/60">Invoice</p>
+                    <p class="font-mono font-medium">{{ invoice.reference }}</p>
+                </div>
+            </div>
+
+            {% if invoice.status == 'VOID' %}<p class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">This invoice has been voided.</p>{% endif %}
+            {% if invoice.status == 'PAID' %}<p class="mt-4 rounded-lg bg-[#f0fdfa] text-[#0e7490] text-sm px-3 py-2">Paid on {{ invoice.paid_at|date:"j F Y" }}. Thank you.</p>{% endif %}
+
+            <div class="mt-6 grid grid-cols-2 gap-4 text-sm">
+                <div><p class="text-navy/60">Billed to</p><p class="font-medium">{{ invoice.school.name }}</p></div>
+                <div class="text-right"><p class="text-navy/60">Period</p><p class="font-medium">{{ invoice.period|date:"F Y" }}</p></div>
+            </div>
+
+            <table class="w-full mt-6 text-sm">
+                <thead>
+                    <tr class="text-left text-navy/60 border-b border-[#dbeafe]"><th class="py-2">Student</th><th>Programme</th><th class="text-right">Amount</th></tr>
+                </thead>
+                <tbody>
+                    {% for line in invoice.lines %}
+                    <tr class="border-b border-[#eef3fb]"><td class="py-2">{{ line.student }}</td><td>{{ line.track }}</td><td class="text-right">&#8358;{{ line.amount|floatformat:"0g" }}</td></tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr><td colspan="2" class="pt-4 font-bold">Total ({{ invoice.student_count }} student{{ invoice.student_count|pluralize }})</td><td class="pt-4 text-right font-bold">&#8358;{{ invoice.amount_naira|floatformat:"0g" }}</td></tr>
+                </tfoot>
+            </table>
+
+            <div class="mt-8 text-sm">
+                <p class="font-medium">Payment details</p>
+                <p class="text-navy/70 mt-1">{{ payment_instructions }}</p>
+                <p class="text-navy/50 mt-3 text-xs">Please use {{ invoice.reference }} as the payment reference.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
