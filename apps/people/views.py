@@ -26,6 +26,9 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils import timezone
 from .models import SchoolInvoice
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -109,8 +112,30 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
         return ctx
 
     def form_valid(self, form):
-        delivery_mode = form.cleaned_data['delivery']
-        cohort = form.cleaned_data.get('cohort')
+        # Already enrolled (double click, Back button, second tab)? Say so instead of erroring.
+        already = Enrollment.objects.filter(
+            student=self.student, track=self.track,
+            status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE],
+        ).exists()
+        if already:
+            messages.info(self.request, f"{self.student.first_name} is already enrolled in {self.track.name}.")
+            return redirect('dashboard')
+
+        value = form.cleaned_data['delivery']
+        cohort = None
+
+        if value.startswith('cohort:'):
+            delivery_mode = Enrollment.DeliveryMode.COHORT
+            cohort = get_object_or_404(open_cohorts_for(self.request.user, self.track), pk=value.split(':')[1])
+            taken = cohort.enrollments.filter(
+                status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
+            ).count()
+            if cohort.capacity and taken >= cohort.capacity:
+                messages.error(self.request, "That batch just filled up. Please choose another option.")
+                return self.form_invalid(form)
+        else:
+            delivery_mode = value
+
         school_billed = bool(cohort and cohort.school_id)
         enrollment = Enrollment(
             student=self.student, track=self.track, delivery_mode=delivery_mode, cohort=cohort,
@@ -122,8 +147,10 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
         )
         try:
             enrollment.full_clean()
-        except ValidationError:
-            messages.error(self.request, f"{self.student.first_name} already has a live enrollment in {self.track.name}.")
+        except ValidationError as exc:
+            logger.warning("Enrollment rejected: student=%s track=%s reasons=%s",
+                           self.student.pk, self.track.pk, exc.messages)
+            messages.error(self.request, "We couldn't complete that enrollment: " + " ".join(exc.messages))
             return redirect('dashboard')
         enrollment.save()
 

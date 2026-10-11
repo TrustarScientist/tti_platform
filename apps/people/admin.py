@@ -76,8 +76,9 @@ class CohortAdmin(admin.ModelAdmin):
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
-    list_display = ('student', 'track', 'delivery_mode', 'status', 'school', 'created_at')
-    list_filter = ('status', 'delivery_mode', 'track')
+    list_display = ('student', 'track', 'delivery_mode', 'billed_to', 'status', 'school', 'created_at')
+    list_filter = ('status', 'delivery_mode', 'billed_to', 'track')
+    search_fields = ('student__first_name', 'student__last_name')
     actions = ['mark_active']
 
     @admin.action(description="Mark selected as paid (Active)")
