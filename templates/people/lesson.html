@@ -61,6 +61,15 @@
         </div>
         {% endfor %}
     </div>
+        {% for row in assessment_rows %}
+                {% if row.attempt and row.attempt.feedback %}
+                <div class="mt-2 rounded-xl bg-light px-4 py-3 text-sm">
+                    <p class="font-medium">Feedback on {{ row.assessment.title }}</p>
+                    <p class="mt-1 text-navy/70 whitespace-pre-line">{{ row.attempt.feedback }}</p>
+                </div>
+            {% endif %}
+        {% endfor %}
+
     {% endif %}
 
     {% if enrollment.status == 'ACTIVE' %}

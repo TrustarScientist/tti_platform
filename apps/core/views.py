@@ -1,6 +1,6 @@
 # apps/core/views.py 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from django.db.models import Count, Q
@@ -43,8 +43,8 @@ def dashboard(request):
             context['invoices'] = user.school.invoices.exclude(status='VOID')[:6]
         return render(request, template, context)
 
-    if user.role == TUser.Role.INSTRUCTOR:
-        return render(request, 'dashboard/dashboard_instructor.html')
+        if user.role == TUser.Role.INSTRUCTOR:
+            return redirect('teach-home')
 
     if user.role == TUser.Role.STUDENT:
         profile = getattr(user, 'student_profile', None)

@@ -68,6 +68,9 @@ class CohortAdmin(admin.ModelAdmin):
     list_filter = ('track', 'school', 'is_active')
     actions = ['advance_batch']
 
+    # 
+    filter_horizontal = ('instructors',)
+
     @admin.action(description="Advance selected cohorts to their next lesson")
     def advance_batch(self, request, queryset):
         moved = sum(1 for cohort in queryset if cohort.advance())

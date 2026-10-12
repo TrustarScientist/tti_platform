@@ -1,0 +1,28 @@
+<!-- templates/people/teach_home.html -->
+{% extends "base_app.html" %}
+{% block title %}Teaching | Trustar{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold">Your cohorts</h1>
+<p class="text-sm text-navy/60 mt-1 mb-6">Advance lessons and review submissions for the batches you teach.</p>
+{% if cohorts %}
+<ul class="space-y-3">
+    {% for c in cohorts %}
+    <li class="bg-white rounded-2xl border border-[#dbeafe] p-5 flex items-center justify-between gap-4">
+        <div class="min-w-0">
+            <a href="{% url 'teach-cohort' c.pk %}" class="font-bold text-blue hover:underline">{{ c.name }}</a>
+            <p class="text-sm text-navy/60 mt-0.5">{{ c.track.name }}{% if c.school %} · {{ c.school.name }}{% else %} · Public{% endif %}</p>
+        </div>
+        <div class="text-right text-sm shrink-0">
+            <p>{{ c.students }} active student{{ c.students|pluralize }}</p>
+            {% if c.waiting %}<p class="text-[#92400e] font-medium">{{ c.waiting }} to review</p>{% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-8 text-center">
+    <p class="font-medium">No cohorts assigned to you yet</p>
+    <p class="text-sm text-navy/60 mt-1">Ask Trustar to add you to a cohort.</p>
+</div>
+{% endif %}
+{% endblock %}

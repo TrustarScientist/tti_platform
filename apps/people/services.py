@@ -216,3 +216,62 @@ def enroll_in_school_cohort(student, cohort, enrolled_by):
     enrollment.full_clean()
     enrollment.save()
     return enrollment, True
+
+
+
+
+def verify_attempt(attempt, *, reviewer, score, feedback=""):
+    attempt.score = score
+    attempt.status = Attempt.Status.VERIFIED
+    attempt.reviewed_by = reviewer
+    attempt.reviewed_at = timezone.now()
+    if feedback:
+        attempt.feedback = feedback  # never touch attempt.notes: that's the student's own answer
+    attempt.save()
+    recompute_trs_score(attempt.enrollment.student, attempt.assessment.dimension)
+    advance_if_lesson_complete(attempt.enrollment, attempt.assessment.lesson)
+
+
+def reject_attempt(attempt, *, reviewer, feedback=""):
+    attempt.status = Attempt.Status.REJECTED
+    attempt.reviewed_by = reviewer
+    attempt.reviewed_at = timezone.now()
+    if feedback:
+        attempt.feedback = feedback
+    attempt.save()
+
+
+def can_teach_cohort(user, cohort):
+    if not user.is_authenticated:
+        return False
+    if user.is_staff or user.role == user.Role.ADMIN:
+        return True
+    return user.role == user.Role.INSTRUCTOR and cohort.instructors.filter(pk=user.pk).exists()
+
+
+def teachable_cohorts(user):
+    qs = Cohort.objects.select_related('track', 'school').filter(is_active=True)
+    if user.is_staff or user.role == user.Role.ADMIN:
+        return qs
+    if user.role == user.Role.INSTRUCTOR:
+        return qs.filter(instructors=user)
+    return qs.none()
+
+
+def cohort_roster(cohort):
+    """Returns (rows, current_lesson). Progress is measured on the batch's current lesson."""
+    lesson = cohort.effective_lesson()
+    enrollments = list(cohort.enrollments.filter(status__in=LIVE_STATUSES)
+                       .select_related('student').order_by('student__first_name', 'student__last_name'))
+    assessment_ids = list(lesson.assessments.values_list('id', flat=True)) if lesson else []
+    done, waiting = {}, set()
+    if enrollments and assessment_ids:
+        attempts = Attempt.objects.filter(enrollment__in=enrollments, assessment_id__in=assessment_ids)
+        for enrollment_id, assessment_id, status in attempts.values_list('enrollment_id', 'assessment_id', 'status'):
+            if status in (Attempt.Status.VERIFIED, Attempt.Status.AUTO_PASSED):
+                done.setdefault(enrollment_id, set()).add(assessment_id)
+            elif status == Attempt.Status.NEEDS_REVIEW:
+                waiting.add(enrollment_id)
+    rows = [{'enrollment': e, 'student': e.student, 'done': len(done.get(e.id, ())),
+             'total': len(assessment_ids), 'waiting': e.id in waiting} for e in enrollments]
+    return rows, lesson

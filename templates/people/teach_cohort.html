@@ -1,0 +1,57 @@
+<!-- templates/people/teach_cohort.html -->
+{% extends "base_app.html" %}
+{% block title %}{{ cohort.name }} | Trustar{% endblock %}
+{% block content %}
+<a href="{% url 'teach-home' %}" class="text-sm text-navy/60 hover:text-navy">&larr; All cohorts</a>
+<h1 class="text-2xl font-bold mt-3">{{ cohort.name }}</h1>
+<p class="text-sm text-navy/60 mt-1">{{ cohort.track.name }}{% if cohort.school %} · {{ cohort.school.name }}{% else %} · Public{% endif %}{% if cohort.schedule_note %} · {{ cohort.schedule_note }}{% endif %}</p>
+
+<div class="bg-white rounded-2xl border border-[#dbeafe] p-5 mt-6">
+    {% if lesson %}
+    <p class="text-xs font-medium text-blue uppercase tracking-wide">Current lesson {{ lesson.position }}</p>
+    <h2 class="text-lg font-bold mt-1">{{ lesson.title }}</h2>
+    <form method="post" action="{% url 'teach-cohort-advance' cohort.pk %}" class="mt-4" hx-confirm="{% if has_next %}Move the whole batch to the next lesson?{% else %}This is the last lesson. Finishing marks everyone as completed.{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary !py-2 !px-4 !text-sm">{% if has_next %}Advance everyone to the next lesson{% else %}Finish the programme for everyone{% endif %}</button>
+    </form>
+    {% else %}
+    <p class="font-medium">This track has no lessons yet.</p>
+    {% endif %}
+</div>
+
+<h2 class="text-lg font-bold mt-8 mb-3">Students ({{ roster|length }})</h2>
+{% if roster %}
+<ul class="space-y-2">
+    {% for row in roster %}
+    <li class="bg-white rounded-xl border border-[#dbeafe] p-4 flex items-center justify-between gap-3">
+        <span class="font-medium">{{ row.student.first_name }} {{ row.student.last_name }}</span>
+        <span class="text-xs text-navy/60 text-right">{% if row.enrollment.status == 'PENDING_PAYMENT' %}Awaiting payment{% elif row.waiting %}Waiting for your review{% elif row.total %}{{ row.done }} of {{ row.total }} done{% else %}No assessment on this lesson{% endif %}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-sm text-navy/60">No active students yet.</p>
+{% endif %}
+
+<h2 class="text-lg font-bold mt-8 mb-3">Waiting for review ({{ queue|length }})</h2>
+{% for a in queue %}
+<div class="bg-white rounded-xl border border-gold/60 p-4 mb-3">
+    <p class="font-medium">{{ a.enrollment.student.first_name }} {{ a.enrollment.student.last_name }} — {{ a.assessment.title }}</p>
+    {% if a.notes %}<p class="text-sm text-navy/70 mt-2 whitespace-pre-line">{{ a.notes }}</p>{% else %}<p class="text-sm text-navy/50 mt-2">No written answer.</p>{% endif %}
+    <form method="post" action="{% url 'teach-attempt-review' a.pk %}" class="mt-3 space-y-3">
+        {% csrf_token %}
+        <div class="flex items-center gap-2">
+            <label for="score-{{ a.pk }}" class="text-sm">Score (out of {{ a.assessment.max_score }})</label>
+            <input type="number" name="score" id="score-{{ a.pk }}" min="0" max="{{ a.assessment.max_score }}" placeholder="{{ a.assessment.max_score }}" class="w-24 rounded-xl border-[1.5px] border-[#8296bd] px-3 py-1.5 text-sm">
+        </div>
+        <textarea name="feedback" rows="2" placeholder="Feedback for the student (optional)"></textarea>
+        <div class="flex gap-2">
+            <button type="submit" name="action" value="verify" class="btn-primary !py-2 !px-4 !text-sm">Verify</button>
+            <button type="submit" name="action" value="reject" class="rounded-full border-[1.5px] border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-50">Ask to redo</button>
+        </div>
+    </form>
+</div>
+{% empty %}
+<p class="text-sm text-navy/60">Nothing waiting.</p>
+{% endfor %}
+{% endblock %}

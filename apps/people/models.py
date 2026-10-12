@@ -135,17 +135,24 @@ class Cohort(models.Model):
             raise ValidationError("A school programme's cohort must belong to a school.")
     
 
+    # 
+    instructors = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name='teaching_cohorts',
+        limit_choices_to={'role': 'INSTRUCTOR'},
+    )
+
     def advance(self):
-        if self.current_lesson:
-            nxt = self.current_lesson.next()
-            if nxt:
-                self.current_lesson = nxt
-                self.save(update_fields=['current_lesson'])
-                return True
-            self.enrollments.filter(status=Enrollment.Status.ACTIVE).update(
-                status=Enrollment.Status.COMPLETED, ended_at=timezone.now()
-            )
+        current = self.effective_lesson()  # falls back to Lesson 1 when no pointer is set
+        if current is None:
             return False
+        nxt = current.next()
+        if nxt:
+            self.current_lesson = nxt
+            self.save(update_fields=['current_lesson'])
+            return True
+        self.enrollments.filter(status=Enrollment.Status.ACTIVE).update(
+            status=Enrollment.Status.COMPLETED, ended_at=timezone.now()
+        )
         return False
 
     def effective_lesson(self):
@@ -411,6 +418,8 @@ class Attempt(models.Model):
     )
     reviewed_at = models.DateTimeField(null=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
+    
+    feedback = models.TextField(blank=True, help_text="Reviewer's comment to the student.")
 
     def __str__(self):
         return f"{self.enrollment.student} — {self.assessment.title} ({self.status})"

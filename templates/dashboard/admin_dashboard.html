@@ -4,6 +4,7 @@
 
 {% block content %}
 <h1 class="text-2xl font-bold">School accounts waiting for review</h1>
+<a href="{% url 'teach-home' %}" class="text-sm font-medium text-blue hover:underline">Open the teaching console &rarr;</a>
 <p class="text-sm text-navy/60 mt-1 mb-6">
     So far: {{ totals.parents }} parent{{ totals.parents|pluralize }},
     {{ totals.students }} student profile{{ totals.students|pluralize }},

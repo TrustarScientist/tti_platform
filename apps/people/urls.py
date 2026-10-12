@@ -1,5 +1,5 @@
 # apps/people/urls.py
-from django.urls import path
+from django.urls import include, path
 from . import views
 
 urlpatterns = [
@@ -22,4 +22,6 @@ urlpatterns = [
     path('invoices/<int:pk>/', views.InvoiceView.as_view(), name='invoice-detail'),
     # apps/people/urls.py — add
     path('roster/', views.BulkRosterView.as_view(), name='student-bulk-roster'),
+    # instructor specific views
+    path('teach/', include('apps.people.teach_urls')),
 ]
