@@ -43,7 +43,7 @@ def dashboard(request):
             context['invoices'] = user.school.invoices.exclude(status='VOID')[:6]
         return render(request, template, context)
 
-        if user.role == TUser.Role.INSTRUCTOR:
+    if user.role == TUser.Role.INSTRUCTOR:
             return redirect('teach-home')
 
     if user.role == TUser.Role.STUDENT:
