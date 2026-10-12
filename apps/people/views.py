@@ -24,7 +24,8 @@ from .services import advance_if_lesson_complete, can_manage_student, recompute_
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from .services import (can_manage_student, tracks_for, open_cohorts_for, parse_roster,
-                       build_roster_plan, school_cohorts_for, seats_left, enroll_in_school_cohort)
+                       build_roster_plan, school_cohorts_for, seats_left, enroll_in_school_cohort, 
+                       attendance_summary, consistency_score)
 from django.conf import settings
 from django.utils import timezone
 from .models import SchoolInvoice
@@ -188,6 +189,7 @@ class LessonView(LoginRequiredMixin, View):
             'enrollment': enrollment, 'lesson': lesson,
             'is_owner': is_owner, 'assessment_rows': assessment_rows,
             'can_resume': enrollment.status == Enrollment.Status.COMPLETED and enrollment.has_more_lessons,
+            'attendance': attendance_summary(enrollment) if enrollment.delivery_mode == 'COHORT' else None,
         })
 
 # apps/people/views.py — replace MarkLessonCompleteView.post entirely
@@ -287,11 +289,16 @@ class TRSProfileView(LoginRequiredMixin, View):
 
         rows = []
         for dim in dimensions:
-            score_obj = scores.get(dim.id)
+            note = ''
+            if dim.code == 'consistency':
+                value = consistency_score(student)  # live, trailing 4 weeks
+                note = "Based on attendance over the last 4 weeks."
+            else:
+                score_obj = scores.get(dim.id)
+                value = score_obj.score if score_obj else None
             rows.append({
-                'dimension': dim,
-                'score': score_obj.score if score_obj else None,
-                'band': band_for(float(score_obj.score)) if score_obj else None,
+                'dimension': dim, 'score': value, 'note': note,
+                'band': band_for(float(value)) if value is not None else None,
             })
 
         return render(request, 'people/trs_profile.html', {'student': student, 'rows': rows})

@@ -7,4 +7,6 @@ urlpatterns = [
     path('cohorts/<int:pk>/', v.CohortConsoleView.as_view(), name='teach-cohort'),
     path('cohorts/<int:pk>/advance/', v.AdvanceCohortView.as_view(), name='teach-cohort-advance'),
     path('attempts/<int:pk>/review/', v.ReviewAttemptView.as_view(), name='teach-attempt-review'),
+    # 
+    path('cohorts/<int:pk>/attendance/', v.AttendanceView.as_view(), name='teach-attendance'),
 ]

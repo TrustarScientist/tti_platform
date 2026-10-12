@@ -19,6 +19,18 @@
     {% endif %}
 </div>
 
+<div class="bg-white rounded-2xl border border-[#dbeafe] p-5 mt-4">
+    <div class="flex items-center justify-between gap-3">
+        <h2 class="font-bold">Attendance</h2>
+        <a href="{% url 'teach-attendance' cohort.pk %}" class="btn-primary !py-2 !px-4 !text-sm">Take today's attendance</a>
+    </div>
+    {% for s in recent_sessions %}
+    <p class="text-sm mt-3"><a href="{% url 'teach-attendance' cohort.pk %}?date={{ s.date|date:'Y-m-d' }}" class="text-blue hover:underline">{{ s.date|date:"D j M" }}</a> — {{ s.present }} of {{ s.total }} present{% if s.topic %} · {{ s.topic }}{% endif %}</p>
+    {% empty %}
+    <p class="text-sm text-navy/60 mt-3">No sessions recorded yet.</p>
+    {% endfor %}
+</div>
+
 <h2 class="text-lg font-bold mt-8 mb-3">Students ({{ roster|length }})</h2>
 {% if roster %}
 <ul class="space-y-2">

@@ -123,6 +123,10 @@ STORAGES = {
     },
 }
 
+
+TIME_ZONE = 'Africa/Lagos'
+
+
 # Local disk only — fine for dev, doesn't persist across Render deploys.
 # Deliberately not wiring real object storage yet (Supabase Storage, when
 # ready); until then, no Assessment should be marked media_required=True

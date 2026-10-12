@@ -6,6 +6,11 @@ from decimal import Decimal
 
 from .models import Attempt, Cohort, Enrollment, Student, StudentGuardian, Track, TRSScore
 
+from datetime import timedelta
+
+from .models import (Attempt, AttendanceRecord, Cohort, Enrollment, Student,
+                     StudentGuardian, Track, TRSScore)
+
 
 
 def attach_student_profile(user, claim_code=None):
@@ -275,3 +280,25 @@ def cohort_roster(cohort):
     rows = [{'enrollment': e, 'student': e.student, 'done': len(done.get(e.id, ())),
              'total': len(assessment_ids), 'waiting': e.id in waiting} for e in enrollments]
     return rows, lesson
+
+
+# attendance
+ATTENDED = [AttendanceRecord.Status.PRESENT, AttendanceRecord.Status.LATE]
+
+
+def attendance_summary(enrollment):
+    counted = enrollment.attendance.exclude(status=AttendanceRecord.Status.EXCUSED)
+    return {'attended': counted.filter(status__in=ATTENDED).count(), 'total': counted.count()}
+
+
+def consistency_score(student, today=None):
+    """Attendance % over the trailing 4 weeks, or None if no sessions were recorded."""
+    today = today or timezone.localdate()
+    records = (AttendanceRecord.objects
+               .filter(enrollment__student=student,
+                       session__date__gte=today - timedelta(days=28), session__date__lte=today)
+               .exclude(status=AttendanceRecord.Status.EXCUSED))
+    total = records.count()
+    if not total:
+        return None
+    return round(Decimal(records.filter(status__in=ATTENDED).count()) * 100 / Decimal(total), 2)

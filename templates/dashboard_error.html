@@ -1,0 +1,8 @@
+<!-- Dashboard Error -->
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    <strong class="font-bold">Error:</strong>
+    <span class="block sm:inline">{{ message }}</span>
+    {% if link %}
+    <a href="{{ link }}" class="underline hover:text-red-800">Go back</a>
+    {% endif %}
+</div>

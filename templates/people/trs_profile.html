@@ -19,6 +19,7 @@
                 <div class="h-full bg-blue rounded-full" style="width: {{ row.score }}%"></div>
             </div>
             {% endif %}
+            {% if row.note and row.score != None %}<p class="text-xs text-navy/50 mt-1">{{ row.note }}</p>{% endif %}
         </div>
         {% endfor %}
     </div>

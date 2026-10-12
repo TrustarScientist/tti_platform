@@ -1,13 +1,16 @@
-# apps/people/views_teach.py
+from datetime import date
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views import View
 
 from apps.accounts.models import TUser
-from .models import Attempt, Cohort, Enrollment
+from .models import Attempt, AttendanceRecord, ClassSession, Cohort, Enrollment
 from .services import can_teach_cohort, teachable_cohorts, cohort_roster, verify_attempt, reject_attempt
 
 
@@ -35,9 +38,14 @@ class CohortConsoleView(TeacherRequiredMixin, View):
         roster, lesson = cohort_roster(cohort)
         queue = (Attempt.objects.filter(enrollment__cohort=cohort, status=Attempt.Status.NEEDS_REVIEW)
                  .select_related('enrollment__student', 'assessment').order_by('submitted_at'))
+        recent = cohort.sessions.annotate(
+            present=Count('records', filter=Q(records__status__in=['PRESENT', 'LATE'])),
+            total=Count('records'),
+        )[:5]
         return render(request, 'people/teach_cohort.html', {
             'cohort': cohort, 'lesson': lesson, 'roster': roster, 'queue': queue,
             'has_next': bool(lesson and lesson.next()),
+            'recent_sessions': recent
         })
 
 
@@ -79,4 +87,72 @@ class ReviewAttemptView(TeacherRequiredMixin, View):
                 return redirect('teach-cohort', pk=cohort.pk)
             verify_attempt(attempt, reviewer=request.user, score=score, feedback=feedback)
             messages.success(request, "Verified.")
+        return redirect('teach-cohort', pk=cohort.pk)
+    
+
+
+
+def _parse_date(raw):
+    try:
+        return date.fromisoformat(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+class AttendanceView(TeacherRequiredMixin, View):
+    template_name = 'people/teach_attendance.html'
+
+    def _load(self, request, pk):
+        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school'), pk=pk)
+        return cohort if can_teach_cohort(request.user, cohort) else None
+
+    def get(self, request, pk):
+        cohort = self._load(request, pk)
+        if cohort is None:
+            return HttpResponseForbidden("You don't teach this cohort.")
+        today = timezone.localdate()
+        day = _parse_date(request.GET.get('date')) or today
+        day = min(day, today)
+
+        session = ClassSession.objects.filter(cohort=cohort, date=day).first()
+        existing = {r.enrollment_id: r.status for r in session.records.all()} if session else {}
+        enrollments = (cohort.enrollments.filter(status=Enrollment.Status.ACTIVE)
+                       .select_related('student').order_by('student__first_name', 'student__last_name'))
+        rows = [{'enrollment': e, 'student': e.student, 'status': existing.get(e.id, 'PRESENT')}
+                for e in enrollments]
+        return render(request, self.template_name, {
+            'cohort': cohort, 'day': day, 'rows': rows, 'is_saved': session is not None,
+            'topic': session.topic if session else '', 'statuses': AttendanceRecord.Status.choices,
+        })
+
+    def post(self, request, pk):
+        cohort = self._load(request, pk)
+        if cohort is None:
+            return HttpResponseForbidden("You don't teach this cohort.")
+        day = _parse_date(request.POST.get('date'))
+        if day is None or day > timezone.localdate():
+            messages.error(request, "Choose a valid date. It can't be in the future.")
+            return redirect('teach-cohort', pk=cohort.pk)
+
+        valid = {value for value, _ in AttendanceRecord.Status.choices}
+        enrollments = list(cohort.enrollments.filter(status=Enrollment.Status.ACTIVE))
+        attended = absent = 0
+        with transaction.atomic():
+            session, _ = ClassSession.objects.get_or_create(
+                cohort=cohort, date=day, defaults={'taken_by': request.user})
+            session.topic = request.POST.get('topic', '').strip()[:150]
+            session.taken_by = request.user
+            session.save(update_fields=['topic', 'taken_by'])
+            for enrollment in enrollments:
+                status = request.POST.get(f'status_{enrollment.pk}')
+                if status not in valid:
+                    continue
+                AttendanceRecord.objects.update_or_create(
+                    session=session, enrollment=enrollment, defaults={'status': status})
+                if status in ('PRESENT', 'LATE'):
+                    attended += 1
+                elif status == 'ABSENT':
+                    absent += 1
+
+        messages.success(request, f"Attendance saved for {day:%A %d %B}: {attended} attended, {absent} absent.")
         return redirect('teach-cohort', pk=cohort.pk)

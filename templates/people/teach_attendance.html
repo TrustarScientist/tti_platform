@@ -1,0 +1,47 @@
+<!-- templates/people/teach_attendance.html -->
+{% extends "base_app.html" %}
+{% block title %}Attendance | Trustar{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+    <a href="{% url 'teach-cohort' cohort.pk %}" class="text-sm text-navy/60 hover:text-navy">&larr; {{ cohort.name }}</a>
+    <h1 class="text-2xl font-bold mt-3">Attendance</h1>
+
+    <form method="get" class="flex items-end gap-2 mt-4">
+        <div class="flex-1">
+            <label for="date-pick" class="block text-sm font-medium mb-1.5">Date</label>
+            <input type="date" id="date-pick" name="date" value="{{ day|date:'Y-m-d' }}" max="{{ day|date:'Y-m-d' }}">
+        </div>
+        <button type="submit" class="rounded-full border-[1.5px] border-blue text-blue px-4 py-2.5 text-sm font-medium hover:bg-light">Go</button>
+    </form>
+    {% if is_saved %}<p class="text-xs text-navy/60 mt-2">A register already exists for this date. Saving will update it.</p>{% endif %}
+
+    {% if rows %}
+    <form method="post" class="mt-5 space-y-3">
+        {% csrf_token %}
+        <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+        <div>
+            <label for="topic" class="block text-sm font-medium mb-1.5">What was covered (optional)</label>
+            <input type="text" id="topic" name="topic" value="{{ topic }}" maxlength="150">
+        </div>
+        {% for row in rows %}
+        <div class="bg-white rounded-xl border border-[#dbeafe] p-3">
+            <p class="font-medium text-sm">{{ row.student.first_name }} {{ row.student.last_name }}</p>
+            <div class="flex flex-wrap gap-2 mt-2">
+                {% for value, label in statuses %}
+                <label class="cursor-pointer">
+                    <input type="radio" name="status_{{ row.enrollment.pk }}" value="{{ value }}" class="peer sr-only" {% if row.status == value %}checked{% endif %}>
+                    <span class="block rounded-lg border border-[#cbd8ee] px-3 py-1.5 text-xs peer-checked:bg-navy peer-checked:text-white peer-checked:border-navy">{{ label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        {% include "partials/_submit_button.html" with label="Save attendance" loading="Saving…" %}
+    </form>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-6 text-center mt-5">
+        <p class="font-medium">No active students in this cohort</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

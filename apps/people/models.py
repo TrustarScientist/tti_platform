@@ -486,3 +486,37 @@ class SchoolInvoice(models.Model):
         return f"{self.reference} — {self.school}"
 
     
+
+    # apps/people/models.py — add at the bottom
+class ClassSession(models.Model):
+    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='sessions')
+    date = models.DateField()
+    topic = models.CharField(max_length=150, blank=True)
+    taken_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                 null=True, blank=True, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        constraints = [models.UniqueConstraint(fields=['cohort', 'date'], name='one_session_per_cohort_day')]
+
+    def __str__(self):
+        return f"{self.cohort} — {self.date}"
+
+
+class AttendanceRecord(models.Model):
+    class Status(models.TextChoices):
+        PRESENT = 'PRESENT', 'Present'
+        LATE = 'LATE', 'Late'
+        ABSENT = 'ABSENT', 'Absent'
+        EXCUSED = 'EXCUSED', 'Excused'
+
+    session = models.ForeignKey(ClassSession, on_delete=models.CASCADE, related_name='records')
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='attendance')
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PRESENT)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['session', 'enrollment'], name='one_record_per_session_student')]
+
+    def __str__(self):
+        return f"{self.enrollment.student} — {self.session.date}: {self.status}"
