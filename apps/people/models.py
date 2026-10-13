@@ -421,6 +421,10 @@ class Attempt(models.Model):
     
     feedback = models.TextField(blank=True, help_text="Reviewer's comment to the student.")
 
+    # 
+    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                     null=True, blank=True, related_name='+')
+
     def __str__(self):
         return f"{self.enrollment.student} — {self.assessment.title} ({self.status})"
 

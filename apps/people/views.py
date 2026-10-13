@@ -4,7 +4,7 @@ from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, request
 from django.contrib import messages
 
 from apps.accounts.models import TUser
@@ -25,7 +25,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from .services import (can_manage_student, tracks_for, open_cohorts_for, parse_roster,
                        build_roster_plan, school_cohorts_for, seats_left, enroll_in_school_cohort, 
-                       attendance_summary, consistency_score)
+                       attendance_summary, consistency_score, can_act_for_student)
 from django.conf import settings
 from django.utils import timezone
 from .models import SchoolInvoice
@@ -190,14 +190,15 @@ class LessonView(LoginRequiredMixin, View):
             'is_owner': is_owner, 'assessment_rows': assessment_rows,
             'can_resume': enrollment.status == Enrollment.Status.COMPLETED and enrollment.has_more_lessons,
             'attendance': attendance_summary(enrollment) if enrollment.delivery_mode == 'COHORT' else None,
+            'can_act': can_act_for_student(request.user, enrollment.student),
         })
 
 # apps/people/views.py — replace MarkLessonCompleteView.post entirely
 class MarkLessonCompleteView(LoginRequiredMixin, View):
     def post(self, request, enrollment_id):
         enrollment = get_object_or_404(Enrollment, pk=enrollment_id)
-        if enrollment.student.user_id != request.user.id:
-            return HttpResponseForbidden("This isn't your enrollment.")
+        if not can_act_for_student(request.user, enrollment.student):
+            return HttpResponseForbidden("You can't do that for this student.")
         if enrollment.status != Enrollment.Status.ACTIVE:
             messages.error(request, "This enrollment isn't active yet.")
             return redirect('dashboard')
@@ -229,12 +230,18 @@ class GenerateClaimCodeView(GuardianRequiredMixin, View):
 
 class SubmitAssessmentView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
         self.enrollment = get_object_or_404(Enrollment, pk=kwargs['enrollment_id'])
         self.assessment = get_object_or_404(Assessment, pk=kwargs['assessment_id'], track=self.enrollment.track)
-        if self.enrollment.student.user_id != request.user.id:
-            return HttpResponseForbidden("This isn't your enrollment.")
+        if not can_act_for_student(request.user, self.enrollment.student):
+            return HttpResponseForbidden("You can't submit work for this student.")
         if self.enrollment.status != Enrollment.Status.ACTIVE:
             messages.error(request, "This enrollment isn't active.")
+            return redirect('student-lesson', enrollment_id=self.enrollment.pk)
+        current = self.enrollment.effective_lesson
+        if self.assessment.lesson_id and current and self.assessment.lesson.position > current.position:
+            messages.error(request, "That assessment isn't open yet.")
             return redirect('student-lesson', enrollment_id=self.enrollment.pk)
         already_done = Attempt.objects.filter(
             enrollment=self.enrollment, assessment=self.assessment,
@@ -244,6 +251,8 @@ class SubmitAssessmentView(LoginRequiredMixin, View):
             messages.info(request, "This has already been completed.")
             return redirect('student-lesson', enrollment_id=self.enrollment.pk)
         return super().dispatch(request, *args, **kwargs)
+
+    
 
     def get(self, request, **kwargs):
         form = AttemptForm(assessment=self.assessment)
@@ -257,6 +266,7 @@ class SubmitAssessmentView(LoginRequiredMixin, View):
         attempt = form.save(commit=False)
         attempt.enrollment = self.enrollment
         attempt.assessment = self.assessment
+        attempt.submitted_by = request.user
 
         if self.assessment.requires_manual_review:
             attempt.status = Attempt.Status.NEEDS_REVIEW

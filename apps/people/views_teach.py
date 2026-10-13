@@ -32,12 +32,12 @@ class TeachHomeView(TeacherRequiredMixin, View):
 
 class CohortConsoleView(TeacherRequiredMixin, View):
     def get(self, request, pk):
-        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school'), pk=pk)
+        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school', 'submitted_by'), pk=pk)
         if not can_teach_cohort(request.user, cohort):
             return HttpResponseForbidden("You don't teach this cohort.")
         roster, lesson = cohort_roster(cohort)
         queue = (Attempt.objects.filter(enrollment__cohort=cohort, status=Attempt.Status.NEEDS_REVIEW)
-                 .select_related('enrollment__student', 'assessment').order_by('submitted_at'))
+                 .select_related('enrollment__student', 'assessment', 'submitted_by').order_by('submitted_at'))
         recent = cohort.sessions.annotate(
             present=Count('records', filter=Q(records__status__in=['PRESENT', 'LATE'])),
             total=Count('records'),
@@ -63,7 +63,7 @@ class AdvanceCohortView(TeacherRequiredMixin, View):
 
 class ReviewAttemptView(TeacherRequiredMixin, View):
     def post(self, request, pk):
-        attempt = get_object_or_404(Attempt.objects.select_related('enrollment__cohort', 'assessment'), pk=pk)
+        attempt = get_object_or_404(Attempt.objects.select_related('enrollment__cohort', 'assessment', 'submitted_by'), pk=pk)
         cohort = attempt.enrollment.cohort
         if cohort is None or not can_teach_cohort(request.user, cohort):
             return HttpResponseForbidden("You can't review this submission.")
@@ -103,7 +103,7 @@ class AttendanceView(TeacherRequiredMixin, View):
     template_name = 'people/teach_attendance.html'
 
     def _load(self, request, pk):
-        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school'), pk=pk)
+        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school', 'submitted_by'), pk=pk)
         return cohort if can_teach_cohort(request.user, cohort) else None
 
     def get(self, request, pk):
@@ -117,7 +117,7 @@ class AttendanceView(TeacherRequiredMixin, View):
         session = ClassSession.objects.filter(cohort=cohort, date=day).first()
         existing = {r.enrollment_id: r.status for r in session.records.all()} if session else {}
         enrollments = (cohort.enrollments.filter(status=Enrollment.Status.ACTIVE)
-                       .select_related('student').order_by('student__first_name', 'student__last_name'))
+                       .select_related('student', 'submitted_by').order_by('student__first_name', 'student__last_name'))
         rows = [{'enrollment': e, 'student': e.student, 'status': existing.get(e.id, 'PRESENT')}
                 for e in enrollments]
         return render(request, self.template_name, {
@@ -153,6 +153,7 @@ class AttendanceView(TeacherRequiredMixin, View):
                     attended += 1
                 elif status == 'ABSENT':
                     absent += 1
+
 
         messages.success(request, f"Attendance saved for {day:%A %d %B}: {attended} attended, {absent} absent.")
         return redirect('teach-cohort', pk=cohort.pk)

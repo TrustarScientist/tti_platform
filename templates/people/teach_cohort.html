@@ -47,6 +47,7 @@
 
 <h2 class="text-lg font-bold mt-8 mb-3">Waiting for review ({{ queue|length }})</h2>
 {% for a in queue %}
+{% if a.submitted_by_id and a.submitted_by_id != a.enrollment.student.user_id %}<p class="text-xs text-navy/50 mt-1">Submitted by {{ a.submitted_by.first_name }} ({{ a.submitted_by.get_role_display }}) on the student's behalf.</p>{% endif %}
 <div class="bg-white rounded-xl border border-gold/60 p-4 mb-3">
     <p class="font-medium">{{ a.enrollment.student.first_name }} {{ a.enrollment.student.last_name }} — {{ a.assessment.title }}</p>
     {% if a.notes %}<p class="text-sm text-navy/70 mt-2 whitespace-pre-line">{{ a.notes }}</p>{% else %}<p class="text-sm text-navy/50 mt-2">No written answer.</p>{% endif %}

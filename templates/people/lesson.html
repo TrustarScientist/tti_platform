@@ -46,7 +46,7 @@
         <div class="bg-white rounded-xl border border-[#dbeafe] p-4 flex items-center justify-between gap-3">
             <span class="text-sm font-medium">{{ row.assessment.title }}</span>
             {% if not row.attempt or row.attempt.status == 'REJECTED' %}
-                {% if is_owner and enrollment.status == 'ACTIVE' %}
+                {% if can_act and enrollment.status == 'ACTIVE' %}
                 <a href="{% url 'student-submit-assessment' enrollment.pk row.assessment.pk %}" class="btn-primary !py-1.5 !px-4 !text-sm shrink-0">
                     {% if row.attempt %}Resubmit{% else %}Start{% endif %}
                 </a>
@@ -81,12 +81,12 @@
                 {% if attendance and attendance.total %}<p class="text-navy/60 mt-2">Attendance: {{ attendance.attended }} of {{ attendance.total }} sessions</p>{% endif %}
                 <p class="text-navy/60 mt-2">The whole batch moves together — the instructor advances everyone once it's time.</p>
             </div>
-        {% elif not assessment_rows and is_owner %}
+        {% elif not assessment_rows and can_act %}
         <form method="post" action="{% url 'student-lesson-complete' enrollment.pk %}" class="mt-5">
             {% csrf_token %}
             {% include "partials/_submit_button.html" with label="Mark this lesson complete" loading="Saving…" %}
         </form>
-        {% elif assessment_rows and is_owner %}
+        {% elif assessment_rows and can_act %}
         <p class="text-sm text-navy/60 mt-4">Completing the assessment{{ assessment_rows|length|pluralize }} above moves to the next lesson automatically.</p>
         {% endif %}
     {% endif %}

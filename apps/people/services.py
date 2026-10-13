@@ -34,7 +34,6 @@ def attach_student_profile(user, claim_code=None):
     )
 
 # TRS related
-# apps/people/services.py — add
 from decimal import Decimal
 from .models import Attempt, TRSScore
 
@@ -50,12 +49,23 @@ def verify_attempt(attempt, *, reviewer, score, notes=""):
     recompute_trs_score(attempt.enrollment.student, attempt.assessment.dimension)
     advance_if_lesson_complete(attempt.enrollment, attempt.assessment.lesson)
 
+
 # enrolment checks
+def can_act_for_student(user, student):
+    """Own account, or a guardian of a student who has no login of their own."""
+    if not user.is_authenticated:
+        return False
+    if student.user_id is not None:
+        return student.user_id == user.id
+    return StudentGuardian.objects.filter(student=student, guardian=user).exists()
+
+
 def advance_if_lesson_complete(enrollment, lesson):
-    """Call this whenever an Attempt is finalized. Advances the enrollment's
-    lesson pointer once every assessment on the current lesson is done."""
     if lesson is None or enrollment.delivery_mode == Enrollment.DeliveryMode.COHORT:
         return False
+    current = enrollment.effective_lesson
+    if current is None or lesson.pk != current.pk:
+        return False  # catch-up work on an earlier lesson must not advance anyone
     assessment_ids = set(lesson.assessments.values_list('id', flat=True))
     if not assessment_ids:
         return False
@@ -68,6 +78,7 @@ def advance_if_lesson_complete(enrollment, lesson):
     if finalized_ids >= assessment_ids:
         return enrollment.mark_current_lesson_complete()
     return False
+
 
 # recompute the TRS score for a student in a given dimension, based on all verified attempts.And delivery dimension is special — it only counts the latest verified attempt, not an average of all attempts.
 def recompute_trs_score(student, dimension):
