@@ -32,12 +32,13 @@ class TeachHomeView(TeacherRequiredMixin, View):
 
 class CohortConsoleView(TeacherRequiredMixin, View):
     def get(self, request, pk):
-        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school', 'submitted_by'), pk=pk)
+        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school'), pk=pk)
         if not can_teach_cohort(request.user, cohort):
             return HttpResponseForbidden("You don't teach this cohort.")
         roster, lesson = cohort_roster(cohort)
         queue = (Attempt.objects.filter(enrollment__cohort=cohort, status=Attempt.Status.NEEDS_REVIEW)
-                 .select_related('enrollment__student', 'assessment', 'submitted_by').order_by('submitted_at'))
+                 .select_related('enrollment__student', 'assessment', 'submitted_by')
+                 .order_by('submitted_at'))
         recent = cohort.sessions.annotate(
             present=Count('records', filter=Q(records__status__in=['PRESENT', 'LATE'])),
             total=Count('records'),
@@ -103,7 +104,7 @@ class AttendanceView(TeacherRequiredMixin, View):
     template_name = 'people/teach_attendance.html'
 
     def _load(self, request, pk):
-        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school', 'submitted_by'), pk=pk)
+        cohort = get_object_or_404(Cohort.objects.select_related('track', 'school'), pk=pk)
         return cohort if can_teach_cohort(request.user, cohort) else None
 
     def get(self, request, pk):

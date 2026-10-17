@@ -51,3 +51,13 @@ def dashboard(request):
         return render(request, 'dashboard/dashboard_student.html', {'profile': profile})
 
     return render(request, 'dashboard_error.html')
+
+
+from django.db import connection
+from django.http import HttpResponse
+
+
+def healthz(request):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1")
+    return HttpResponse("ok")

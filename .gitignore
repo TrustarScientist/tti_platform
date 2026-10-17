@@ -4,3 +4,4 @@ static/
 db.sqlite3
 sent_emails/
 tpvenv/
+backup-*.json

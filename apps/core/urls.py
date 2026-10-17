@@ -8,4 +8,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     # dashboard per user type
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('healthz/', views.healthz, name='healthz'),
 ]
