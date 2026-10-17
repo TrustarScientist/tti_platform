@@ -64,7 +64,7 @@ class AdvanceCohortView(TeacherRequiredMixin, View):
 
 class ReviewAttemptView(TeacherRequiredMixin, View):
     def post(self, request, pk):
-        attempt = get_object_or_404(Attempt.objects.select_related('enrollment__cohort', 'assessment', 'submitted_by'), pk=pk)
+        attempt = get_object_or_404(Attempt.objects.select_related('enrollment__cohort', 'assessment'), pk=pk)
         cohort = attempt.enrollment.cohort
         if cohort is None or not can_teach_cohort(request.user, cohort):
             return HttpResponseForbidden("You can't review this submission.")
@@ -118,7 +118,7 @@ class AttendanceView(TeacherRequiredMixin, View):
         session = ClassSession.objects.filter(cohort=cohort, date=day).first()
         existing = {r.enrollment_id: r.status for r in session.records.all()} if session else {}
         enrollments = (cohort.enrollments.filter(status=Enrollment.Status.ACTIVE)
-                       .select_related('student', 'submitted_by').order_by('student__first_name', 'student__last_name'))
+                       .select_related('student').order_by('student__first_name', 'student__last_name'))
         rows = [{'enrollment': e, 'student': e.student, 'status': existing.get(e.id, 'PRESENT')}
                 for e in enrollments]
         return render(request, self.template_name, {
