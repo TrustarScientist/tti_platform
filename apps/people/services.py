@@ -1,15 +1,14 @@
 # apps/people/services.py
-from .models import Track, Student, Enrollment, Attempt
+from datetime import timedelta
+from decimal import Decimal
 from django.db.models import Q
 from django.utils import timezone
-from decimal import Decimal
 
-from .models import Attempt, Cohort, Enrollment, Student, StudentGuardian, Track, TRSScore
-
-from datetime import timedelta
-
-from .models import (Attempt, AttendanceRecord, Cohort, Enrollment, Student,
+from .models import (Attempt, AttendanceRecord, Cohort, Enrollment, Price, Student,
                      StudentGuardian, Track, TRSScore)
+
+
+    
 
 
 
@@ -34,22 +33,6 @@ def attach_student_profile(user, claim_code=None):
     )
 
 # TRS related
-from decimal import Decimal
-from .models import Attempt, TRSScore
-
-
-def verify_attempt(attempt, *, reviewer, score, notes=""):
-    from django.utils import timezone
-    attempt.score = score
-    attempt.status = Attempt.Status.VERIFIED
-    attempt.reviewed_by = reviewer
-    attempt.reviewed_at = timezone.now()
-    attempt.notes = notes
-    attempt.save()
-    recompute_trs_score(attempt.enrollment.student, attempt.assessment.dimension)
-    advance_if_lesson_complete(attempt.enrollment, attempt.assessment.lesson)
-
-
 # enrolment checks
 def can_act_for_student(user, student):
     """Own account, or a guardian of a student who has no login of their own."""
@@ -112,9 +95,6 @@ def recompute_trs_score(student, dimension):
     )
 
 # 
-from .models import StudentGuardian
-
-
 def can_manage_student(user, student):
     if not user.is_authenticated:
         return False
@@ -313,3 +293,22 @@ def consistency_score(student, today=None):
     if not total:
         return None
     return round(Decimal(records.filter(status__in=ATTENDED).count()) * 100 / Decimal(total), 2)
+
+
+
+DEFAULT_REGION = 'NG'
+
+
+def price_for(track, delivery_mode, region=DEFAULT_REGION, on=None):
+    """The price in force today for this track, format and region, or None if none is set."""
+    today = on or timezone.localdate()
+    return (Price.objects
+            .filter(track=track, delivery_mode=delivery_mode, region=region,
+                    is_active=True, effective_from__lte=today)
+            .order_by('-effective_from').first())
+
+
+def region_for(user):
+    """Pricing region for this user. Always NG until a second currency exists; later it will
+    read the billing country chosen at checkout."""
+    return DEFAULT_REGION

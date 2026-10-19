@@ -1,35 +1,26 @@
 # apps/people/views.py
-from django.views import View
-from django.views.generic import CreateView
-from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import HttpResponseForbidden, request
-from django.contrib import messages
+import logging
 
-from apps.accounts.models import TUser
-from .models import Student, StudentGuardian, band_for
-from .forms import StudentForm
 from django.conf import settings
-from django.views.generic import FormView
-from .forms import EnrollForm
-from .models import Enrollment, Track,Cohort, Enrollment
-from django.shortcuts import render, get_object_or_404, redirect
-from .forms import TrackChoiceForm, DeliveryChoiceForm
-
-from django.utils import timezone
-from .forms import AttemptForm
-from .models import Assessment, Attempt, TRSDimension,TRSScore
-from .services import advance_if_lesson_complete, can_manage_student, recompute_trs_score, tracks_for, open_cohorts_for
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from .services import (can_manage_student, tracks_for, open_cohorts_for, parse_roster,
-                       build_roster_plan, school_cohorts_for, seats_left, enroll_in_school_cohort, 
-                       attendance_summary, consistency_score, can_act_for_student)
-from django.conf import settings
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
 from django.utils import timezone
-from .models import SchoolInvoice
-import logging
+from django.views import View
+from django.views.generic import CreateView, FormView
+
+from apps.accounts.models import TUser
+from .forms import AttemptForm, DeliveryChoiceForm, LinkChildForm, StudentForm, TrackChoiceForm
+from .models import (Assessment, Attempt, Cohort, Enrollment, SchoolInvoice, Student,
+                     StudentGuardian, TRSDimension, band_for)
+from .services import (advance_if_lesson_complete, attendance_summary, build_roster_plan,
+                       can_act_for_student, can_manage_student, consistency_score,
+                       enroll_in_school_cohort, open_cohorts_for, parse_roster, price_for,
+                       recompute_trs_score, region_for, school_cohorts_for, seats_left, tracks_for)
 
 logger = logging.getLogger(__name__)
 
@@ -159,9 +150,10 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
 
         if school_billed:
             messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name} — billed to {cohort.school.name}.")
-        else:
-            messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name}, pending payment confirmation.")
-        return redirect('dashboard')
+            return redirect('dashboard')
+            
+        messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name}. Complete payment to start.")
+        return redirect('student-lesson', enrollment_id=enrollment.pk)
 
 
 
@@ -174,14 +166,20 @@ class LessonView(LoginRequiredMixin, View):
         if not (is_owner or is_guardian):
             return HttpResponseForbidden("You don't have access to this enrollment.")
 
+        pay_state = None
+        if enrollment.billed_to == Enrollment.BilledTo.FAMILY:
+            if enrollment.status == Enrollment.Status.PENDING_PAYMENT:
+                pay_state = 'pending'
+            elif enrollment.status == Enrollment.Status.ACTIVE and not enrollment.has_access():
+                pay_state = 'lapsed'
+
         lesson = None
-        if enrollment.status in (Enrollment.Status.ACTIVE, Enrollment.Status.COMPLETED):
+        if pay_state is None and enrollment.status in (Enrollment.Status.ACTIVE, Enrollment.Status.COMPLETED):
             lesson = enrollment.effective_lesson
         assessment_rows = []
         if lesson:
             for assessment in lesson.assessments.all():
-                attempt = (Attempt.objects
-                           .filter(enrollment=enrollment, assessment=assessment)
+                attempt = (Attempt.objects.filter(enrollment=enrollment, assessment=assessment)
                            .order_by('-submitted_at').first())
                 assessment_rows.append({'assessment': assessment, 'attempt': attempt})
 
@@ -191,15 +189,19 @@ class LessonView(LoginRequiredMixin, View):
             'can_resume': enrollment.status == Enrollment.Status.COMPLETED and enrollment.has_more_lessons,
             'attendance': attendance_summary(enrollment) if enrollment.delivery_mode == 'COHORT' else None,
             'can_act': can_act_for_student(request.user, enrollment.student),
+            'pay_state': pay_state,
+            'price': price_for(enrollment.track, enrollment.delivery_mode, region_for(request.user)) if pay_state else None,
+            'can_pay': can_manage_student(request.user, enrollment.student),
         })
 
-# apps/people/views.py — replace MarkLessonCompleteView.post entirely
+
+# 
 class MarkLessonCompleteView(LoginRequiredMixin, View):
     def post(self, request, enrollment_id):
         enrollment = get_object_or_404(Enrollment, pk=enrollment_id)
         if not can_act_for_student(request.user, enrollment.student):
             return HttpResponseForbidden("You can't do that for this student.")
-        if enrollment.status != Enrollment.Status.ACTIVE:
+        if enrollment.status != Enrollment.Status.ACTIVE or not enrollment.has_access():
             messages.error(request, "This enrollment isn't active yet.")
             return redirect('dashboard')
         lesson = enrollment.effective_lesson
@@ -220,7 +222,7 @@ class GenerateClaimCodeView(GuardianRequiredMixin, View):
         if not StudentGuardian.objects.filter(student=student, guardian=request.user).exists():
             return HttpResponseForbidden("You don't manage this student.")
 
-        code = student.generate_claim_code()
+        student.generate_claim_code()
         messages.success(request, f"Invite code created for {student.first_name}.")
         return redirect('dashboard')
 
@@ -236,7 +238,7 @@ class SubmitAssessmentView(LoginRequiredMixin, View):
         self.assessment = get_object_or_404(Assessment, pk=kwargs['assessment_id'], track=self.enrollment.track)
         if not can_act_for_student(request.user, self.enrollment.student):
             return HttpResponseForbidden("You can't submit work for this student.")
-        if self.enrollment.status != Enrollment.Status.ACTIVE:
+        if self.enrollment.status != Enrollment.Status.ACTIVE or not self.enrollment.has_access():
             messages.error(request, "This enrollment isn't active.")
             return redirect('student-lesson', enrollment_id=self.enrollment.pk)
         current = self.enrollment.effective_lesson
@@ -328,9 +330,6 @@ class ResumeEnrollmentView(LoginRequiredMixin, View):
         return redirect('student-lesson', enrollment_id=enrollment.pk)
 
 
-
-# apps/people/views.py
-from .forms import LinkChildForm
 
 
 class ParentRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):

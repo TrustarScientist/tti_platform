@@ -5,10 +5,22 @@
 <div class="max-w-2xl">
     <a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
 
-    {% if enrollment.status == 'PENDING_PAYMENT' %}
-    <div class="mt-4 bg-white rounded-2xl border border-gold/60 p-6">
-        <h1 class="text-xl font-bold">Payment pending</h1>
-        <p class="text-sm text-navy/60 mt-1">{{ enrollment.student.first_name }}'s enrollment in {{ enrollment.track.name }} is waiting on payment confirmation.</p>
+    {% if enrollment.status == 'PENDING_PAYMENT' or pay_state == 'lapsed' %}
+        {% if pay_state %}
+            <div class="mt-4 bg-white rounded-2xl border border-gold/60 p-6">
+                <h1 class="text-xl font-bold">{% if pay_state == 'lapsed' %}Payment due{% else %}Payment pending{% endif %}</h1>
+                <p class="text-sm text-navy/60 mt-1">{% if pay_state == 'lapsed' %}Access to {{ enrollment.track.name }} is paused for {{ enrollment.student.first_name }} until the next payment.{% else %}{{ enrollment.student.first_name }}'s place in {{ enrollment.track.name }} starts as soon as payment is confirmed.{% endif %}</p>
+            </div>
+        {% endif %}    
+        {% if price and can_pay %}
+            <form method="post" action="{% url 'pay-checkout' enrollment.pk %}" hx-boost="false" class="mt-4">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary">Pay {{ price.label }}</button>
+            </form>
+            <p class="text-xs text-navy/50 mt-2">You'll pay securely on Paystack by card, bank transfer or USSD.</p>
+        {% elif not price %}
+            <p class="text-sm text-navy/60 mt-3">Online payment for this option isn't available yet. Please contact Trustar to pay.</p>
+        {% endif %}
     </div>
 
     {% elif enrollment.status == 'CANCELLED' or enrollment.status == 'EXPIRED' %}

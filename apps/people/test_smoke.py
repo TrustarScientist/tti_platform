@@ -3,17 +3,23 @@ command to run before git push: python -m pyflakes apps; python manage.py test a
 """
 
 # apps/people/test_smoke.py
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import TUser
 from .billing import issue_invoice, previous_month
 from .models import (Assessment, Attempt, ClassSession, Cohort, Enrollment, Lesson,
-                     Student, StudentGuardian, Track, TRSDimension, TRSScore)
-from .services import consistency_score
+                     Student, StudentGuardian, Track, TRSDimension, TRSScore, Price, Payment)
+from .services import consistency_score, price_for
+import hashlib
+import hmac
+import json
+from unittest import mock
+
+
 
 PASSWORD = 'pw-12345-test'
 ACTIVE, COHORT, SELF_PACED = Enrollment.Status.ACTIVE, Enrollment.DeliveryMode.COHORT, Enrollment.DeliveryMode.SELF_PACED
@@ -284,3 +290,142 @@ class MoneyTests(Base):
         e.status = ACTIVE
         e.save()
         self.assertIsNone(e.ended_at)
+
+
+
+class PriceBookTests(Base):
+    def test_latest_effective_price_wins_and_inactive_or_future_are_ignored(self):
+        today = timezone.localdate()
+        for amount, days, active in ((3000, -60, True), (4000, -1, True), (5000, 30, True), (9999, 0, False)):
+            Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=amount,
+                                 effective_from=today + timedelta(days=days), is_active=active)
+        price = price_for(self.track, SELF_PACED)
+        self.assertEqual(price.amount, 4000)
+        self.assertEqual(price.amount_minor, 400000)
+        self.assertIsNone(price_for(self.track, SELF_PACED, region='UK'))
+
+    def test_delivery_step_shows_the_price_for_each_format(self):
+        Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=4000)
+        self.client.force_login(self.parent)
+        page = self.client.get(reverse('student-enroll-delivery', args=[self.child.pk, self.track.pk]))
+        self.assertContains(page, '₦4,000 / month')
+
+
+
+    def test_track_step_shows_no_price(self):
+        Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=4000)
+        kid = Student.objects.create(first_name='New', last_name='Kid')
+        StudentGuardian.objects.create(student=kid, guardian=self.parent,
+                                       relationship=StudentGuardian.Relationship.PARENT)
+        self.client.force_login(self.parent)
+        page = self.client.get(reverse('student-enroll', args=[kid.pk]))
+        self.assertContains(page, 'Foundations')
+        self.assertNotContains(page, '₦')
+        self.assertNotContains(page, '8358')  # the old hard-coded track price
+
+    def test_newer_price_replaces_older_on_the_delivery_step(self):
+        today = timezone.localdate()
+        Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=3000,
+                             effective_from=today - timedelta(days=30))
+        self.client.force_login(self.parent)
+        url = reverse('student-enroll-delivery', args=[self.child.pk, self.track.pk])
+        self.assertContains(self.client.get(url), '₦3,000 / month')
+        Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=4000, effective_from=today)
+        page = self.client.get(url)
+        self.assertContains(page, '₦4,000 / month')
+        self.assertNotContains(page, '₦3,000')
+
+
+@override_settings(PAYSTACK_SECRET_KEY='sk_test_unit', ACCESS_GRACE_DAYS=3)
+class PaymentTests(Base):
+    def setUp(self):
+        Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=4000)
+        self.kid = Student.objects.create(first_name='Pay', last_name='Kid')
+        StudentGuardian.objects.create(student=self.kid, guardian=self.parent,
+                                       relationship=StudentGuardian.Relationship.PARENT)
+        self.enrollment = Enrollment.objects.create(
+            student=self.kid, track=self.track, delivery_mode=SELF_PACED, enrolled_by=self.parent)
+
+    def _webhook(self, reference='TTI-TEST1', amount_minor=400000, secret='sk_test_unit'):
+        Payment.objects.get_or_create(reference=reference, defaults=dict(
+            enrollment=self.enrollment, amount=4000, currency='NGN', access_days=30))
+        raw = json.dumps({'event': 'charge.success', 'data': {
+            'reference': reference, 'amount': amount_minor, 'currency': 'NGN', 'status': 'success'}}).encode()
+        signature = hmac.new(secret.encode(), raw, hashlib.sha512).hexdigest()
+        return self.client.post(reverse('pay-webhook'), data=raw, content_type='application/json',
+                                HTTP_X_PAYSTACK_SIGNATURE=signature)
+
+    @mock.patch('apps.people.payments.initialize_transaction')
+    def test_checkout_charges_the_price_book_amount_not_the_browser(self, init):
+        init.return_value = {'authorization_url': 'https://checkout.paystack.com/abc'}
+        self.client.force_login(self.parent)
+        resp = self.client.post(reverse('pay-checkout', args=[self.enrollment.pk]), {'amount': '1'})
+        self.assertRedirects(resp, 'https://checkout.paystack.com/abc', fetch_redirect_response=False)
+        payment = Payment.objects.get(enrollment=self.enrollment)
+        self.assertEqual((payment.amount, payment.status), (4000, Payment.Status.PENDING))
+        self.assertEqual(init.call_args.kwargs['amount_minor'], 400000)
+
+    def test_only_a_guardian_can_start_checkout(self):
+        self.client.force_login(self.other_parent)
+        resp = self.client.post(reverse('pay-checkout', args=[self.enrollment.pk]))
+        self.assertEqual(resp.status_code, 403)
+
+    def test_webhook_activates_once_and_ignores_replays(self):
+        self.assertEqual(self._webhook().status_code, 200)
+        self.enrollment.refresh_from_db()
+        expected = timezone.localdate() + timedelta(days=30)
+        self.assertEqual((self.enrollment.status, self.enrollment.paid_through), (ACTIVE, expected))
+        self._webhook()  # Paystack retries; nothing may change
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.paid_through, expected)
+        self.assertEqual(Payment.objects.get(reference='TTI-TEST1').status, Payment.Status.PAID)
+
+    def test_webhook_rejects_a_bad_signature(self):
+        self.assertEqual(self._webhook(secret='someone-elses-key').status_code, 401)
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, Enrollment.Status.PENDING_PAYMENT)
+
+    def test_wrong_amount_is_held_for_review_not_activated(self):
+        self._webhook(amount_minor=100)
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, Enrollment.Status.PENDING_PAYMENT)
+        self.assertEqual(Payment.objects.get(reference='TTI-TEST1').status, Payment.Status.REVIEW)
+
+    @mock.patch('apps.people.payments.verify_transaction')
+    def test_return_visit_verifies_with_paystack_and_activates(self, verify):
+        Payment.objects.create(enrollment=self.enrollment, reference='TTI-CB1', amount=4000,
+                               currency='NGN', access_days=30)
+        verify.return_value = {'status': 'success', 'amount': 400000, 'currency': 'NGN'}
+        self.client.force_login(self.parent)
+        self.client.get(reverse('pay-callback'), {'reference': 'TTI-CB1'})
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, ACTIVE)
+
+    def test_renewal_extends_from_the_later_date(self):
+        self.enrollment.status = ACTIVE
+        self.enrollment.paid_through = timezone.localdate() + timedelta(days=10)
+        self.enrollment.save()
+        self._webhook()
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.paid_through, timezone.localdate() + timedelta(days=40))
+
+    def test_grace_period_then_pause(self):
+        e = self.enrollment
+        e.status, e.paid_through = ACTIVE, date(2026, 10, 1)
+        self.assertTrue(e.has_access(date(2026, 10, 4)))     # inside the 3 grace days
+        self.assertFalse(e.has_access(date(2026, 10, 5)))
+        e.billed_to = Enrollment.BilledTo.SCHOOL
+        self.assertTrue(e.has_access(date(2030, 1, 1)))      # school-billed never pauses
+
+    def test_lapsed_enrollment_shows_payment_due_and_hides_the_lesson(self):
+        self.enrollment.status = ACTIVE
+        self.enrollment.billed_to = Enrollment.BilledTo.FAMILY  # <-- ADD THIS LINE
+        self.enrollment.paid_through = timezone.localdate() - timedelta(days=10)
+        self.enrollment.save()
+        
+        self.client.force_login(self.parent)
+        page = self.client.get(reverse('student-lesson', args=[self.enrollment.pk]))
+        
+        self.assertContains(page, 'Payment due')
+        self.assertContains(page, 'Pay ₦4,000') # Tip: simplify assertion to match 'Pay ' or '4,000' if formatting differs
+        self.assertNotContains(page, 'Meet the screen')

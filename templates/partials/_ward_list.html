@@ -63,7 +63,8 @@ Expects: wards, signup_url. With-args: noun ("child"/"student"), plural ("childr
             {% for enrollment in student.enrollments.all %}
             <div>
                 <p class="text-sm flex items-center gap-1.5">
-                    {% if enrollment.status == 'ACTIVE' %}<i class="ph ph-check-circle text-[#0e7490]"></i> Enrolled in {{ enrollment.track.name }}
+                    {% if enrollment.status == 'ACTIVE' and enrollment.has_access %}<i class="ph ph-check-circle text-[#0e7490]"></i> Enrolled in {{ enrollment.track.name }}
+                    {% elif enrollment.status == 'ACTIVE' %}<i class="ph ph-clock text-gold"></i> {{ enrollment.track.name }} — payment due
                     {% elif enrollment.status == 'PENDING_PAYMENT' %}<i class="ph ph-clock text-gold"></i> {{ enrollment.track.name }} — pending payment confirmation
                     {% elif enrollment.status == 'COMPLETED' %}<i class="ph ph-check-circle text-[#0e7490]"></i> {{ enrollment.track.name }} — completed
                     {% else %}<i class="ph ph-x-circle text-navy/40"></i> {{ enrollment.track.name }} — {{ enrollment.get_status_display }}{% endif %}

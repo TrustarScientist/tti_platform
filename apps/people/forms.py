@@ -1,11 +1,9 @@
-# apps/people/forms.py (full replace)
+# apps/people/forms.py 
 from datetime import date
 from django import forms
-from .models import Student,Track,Cohort, Enrollment
-from django.db.models import Q
-from django.utils import timezone
-from .models import Assessment, Attempt
-from .services import tracks_for, open_cohorts_for
+from .models import Student, Track, Enrollment, Attempt
+from .services import tracks_for, open_cohorts_for, price_for, region_for
+
 
 
 class StudentForm(forms.ModelForm):
@@ -51,6 +49,7 @@ class TrackChoiceForm(forms.Form):
         self.fields['track'].queryset = qs
 
 
+
 class DeliveryChoiceForm(forms.Form):
     delivery = forms.ChoiceField(widget=forms.RadioSelect, label="Choose how to learn")
 
@@ -58,6 +57,10 @@ class DeliveryChoiceForm(forms.Form):
         super().__init__(*args, **kwargs)
         choices = []
         if track is not None:
+            def priced(label, mode):
+                price = price_for(track, mode, region_for(user))
+                return f"{label} · {price.label()}" if price else label
+
             if track.offers_cohort:
                 for cohort in open_cohorts_for(user, track):
                     label = cohort.name
@@ -70,13 +73,15 @@ class DeliveryChoiceForm(forms.Form):
                         label = f"{cohort.name} ({cohort.capacity - taken} seats left)"
                     if cohort.schedule_note:
                         label += f" — {cohort.schedule_note}"
+                    # School cohorts are billed on the school's invoice, so they show no family price.
+                    if not cohort.school_id:
+                        label = priced(label, Enrollment.DeliveryMode.COHORT)
                     choices.append((f"cohort:{cohort.pk}", label))
             if track.offers_one_on_one:
-                choices.append(('ONE_ON_ONE', "One-on-one — paced by your instructor"))
+                choices.append(('ONE_ON_ONE', priced("One-on-one — paced by your instructor", Enrollment.DeliveryMode.ONE_ON_ONE)))
             if track.offers_self_paced:
-                choices.append(('SELF_PACED', "Self-paced — learn on your own schedule"))
+                choices.append(('SELF_PACED', priced("Self-paced — learn on your own schedule", Enrollment.DeliveryMode.SELF_PACED)))
         self.fields['delivery'].choices = choices
-
 # TRS related
 class AttemptForm(forms.ModelForm):
     class Meta:

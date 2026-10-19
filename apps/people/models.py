@@ -2,9 +2,10 @@
 import secrets
 from django.conf import settings
 from django.db import models
-import secrets
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from datetime import timedelta
+from decimal import Decimal
 
 
 class School(models.Model):
@@ -333,6 +334,34 @@ class Enrollment(models.Model):
     billed_to = models.CharField(max_length=10, choices=BilledTo.choices, default=BilledTo.FAMILY)
     ended_at = models.DateTimeField(null=True, blank=True)
 
+
+    paid_through = models.DateField(
+        null=True, blank=True,
+        help_text="Last day covered by payment. Blank = no expiry (school-billed, or activated by hand).")
+
+    def has_access(self, today=None):
+        """Can lessons open right now? Allows ACCESS_GRACE_DAYS after paid_through."""
+        if self.status == self.Status.COMPLETED:
+            return True
+        if self.status != self.Status.ACTIVE:
+            return False
+        if self.billed_to == self.BilledTo.SCHOOL or self.paid_through is None:
+            return True
+        today = today or timezone.localdate()
+        return today <= self.paid_through + timedelta(days=settings.ACCESS_GRACE_DAYS)
+
+    def extend_access(self, days, today=None):
+        """One payment's worth of access, counted from the later of today and paid_through."""
+        today = today or timezone.localdate()
+        start = self.paid_through if (self.paid_through and self.paid_through > today) else today
+        self.paid_through = start + timedelta(days=days)
+        if self.status in (self.Status.PENDING_PAYMENT, self.Status.EXPIRED):
+            self.status = self.Status.ACTIVE
+        if self.activated_at is None:
+            self.activated_at = timezone.now()
+        self.save(update_fields=['paid_through', 'status', 'activated_at'])
+
+
     def save(self, *args, **kwargs):
         # ended_at follows status, so every route (admin, views, resume) keeps it right.
         update_fields = kwargs.get('update_fields')
@@ -344,6 +373,8 @@ class Enrollment(models.Model):
         if changed and update_fields is not None:
             kwargs['update_fields'] = set(update_fields) | {'ended_at'}
         super().save(*args, **kwargs)
+
+    
 
 
 
@@ -524,3 +555,89 @@ class AttendanceRecord(models.Model):
 
     def __str__(self):
         return f"{self.enrollment.student} — {self.session.date}: {self.status}"
+
+
+
+# apps/people/models.py — add `from decimal import Decimal` to the imports at the top,
+# then add this class at the bottom
+class Price(models.Model):
+    """What one purchase of access costs, per track x format x region."""
+    CURRENCY_SYMBOLS = {'NGN': '₦', 'GBP': '£', 'USD': '$', 'EUR': '€'}
+
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name='prices')
+    delivery_mode = models.CharField(max_length=20, choices=Enrollment.DeliveryMode.choices)
+    region = models.CharField(max_length=10, default='NG', help_text="Pricing region, e.g. NG, UK, INTL.")
+    currency = models.CharField(max_length=3, default='NGN')
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Major units, e.g. 4000 for ₦4,000.")
+    access_days = models.PositiveIntegerField(default=30, help_text="Days of access one payment buys.")
+    effective_from = models.DateField(default=timezone.localdate)
+    is_active = models.BooleanField(default=True)
+    note = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ['track', 'delivery_mode', 'region', '-effective_from']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['track', 'delivery_mode', 'region', 'currency', 'effective_from'],
+                name='one_price_per_product_region_date'),
+        ]
+
+    def clean(self):
+        if self.amount is not None and self.amount <= 0:
+            raise ValidationError("Price must be greater than zero.")
+
+    @property
+    def amount_minor(self):
+        """Kobo/pence/cents: the unit Paystack expects."""
+        return int((Decimal(str(self.amount)) * 100).to_integral_value())
+
+    def label(self):
+        symbol = self.CURRENCY_SYMBOLS.get(self.currency, f"{self.currency} ")
+        period = 'month' if self.access_days == 30 else f"{self.access_days} days"
+        return f"{symbol}{self.amount:,.0f} / {period}"
+
+    def __str__(self):
+        return f"{self.track} · {self.delivery_mode} · {self.region}: {self.label()}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Payment(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        PAID = 'PAID', 'Paid'
+        FAILED = 'FAILED', 'Failed'
+        REVIEW = 'REVIEW', 'Needs review'
+
+    class Provider(models.TextChoices):
+        PAYSTACK = 'PAYSTACK', 'Paystack'
+        MANUAL = 'MANUAL', 'Recorded by Trustar'
+
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.PROTECT, related_name='payments')
+    provider = models.CharField(max_length=10, choices=Provider.choices, default=Provider.PAYSTACK)
+    reference = models.CharField(max_length=64, unique=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)   # snapshot of the price at purchase
+    currency = models.CharField(max_length=3, default='NGN')
+    access_days = models.PositiveIntegerField(default=30)           # snapshot too
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    initiated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                     null=True, blank=True, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def amount_minor(self):
+        return int((Decimal(str(self.amount)) * 100).to_integral_value())
+
+    def __str__(self):
+        return f"{self.reference} — {self.status}"

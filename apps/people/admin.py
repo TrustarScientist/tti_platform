@@ -11,9 +11,16 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from .billing import issue_invoice, previous_month
-from .models import SchoolInvoice
+from .models import SchoolInvoice, Price, Payment
+from .payments import PaystackError, new_reference, settle_payment, verify_transaction
+from .services import price_for
 
+#
+class PriceInline(admin.TabularInline):
+    model = Price
+    extra = 0
 
+    
 class StudentGuardianInline(admin.TabularInline):
     model = StudentGuardian
     extra = 0
@@ -59,7 +66,7 @@ class TrackAdmin(admin.ModelAdmin):
     list_display = ('name', 'kind', 'audience', 'age_range', 'price_naira', 'is_active')
     list_filter = ('kind', 'audience', 'is_active')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = [LessonInline]
+    inlines = [LessonInline, PriceInline]
 
 
 @admin.register(Cohort)
@@ -82,7 +89,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ('student', 'track', 'delivery_mode', 'billed_to', 'status', 'school', 'created_at')
     list_filter = ('status', 'delivery_mode', 'billed_to', 'track')
     search_fields = ('student__first_name', 'student__last_name')
-    actions = ['mark_active']
+    actions = ['record_manual_payment']
 
     @admin.action(description="Mark selected as paid (Active)")
     def mark_active(self, request, queryset):
@@ -91,6 +98,22 @@ class EnrollmentAdmin(admin.ModelAdmin):
             status=Enrollment.Status.ACTIVE, activated_at=timezone.now()
         )
         self.message_user(request, f"{count} enrollment(s) marked active.", messages.SUCCESS)
+        
+    @admin.action(description="Record a payment received (cash/transfer): extends access")
+    def record_manual_payment(self, request, queryset):
+        done = 0
+        live = [Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
+        for e in queryset.filter(billed_to=Enrollment.BilledTo.FAMILY, status__in=live):
+            price = price_for(e.track, e.delivery_mode)
+            days = price.access_days if price else 30
+            Payment.objects.create(
+                enrollment=e, provider=Payment.Provider.MANUAL, reference=new_reference(),
+                amount=price.amount if price else 0, currency=price.currency if price else 'NGN',
+                access_days=days, status=Payment.Status.PAID, paid_at=timezone.now(),
+                initiated_by=request.user)
+            e.extend_access(days)
+            done += 1
+        self.message_user(request, f"{done} payment(s) recorded.", messages.SUCCESS)
 
 
 # TRS related
@@ -170,3 +193,43 @@ class SchoolInvoiceAdmin(admin.ModelAdmin):
     def mark_void(self, request, queryset):
         n = queryset.exclude(status=SchoolInvoice.Status.VOID).update(status=SchoolInvoice.Status.VOID)
         self.message_user(request, f"{n} invoice(s) voided.", messages.SUCCESS)
+
+
+    
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('reference', 'enrollment', 'provider', 'amount', 'currency', 'status', 'created_at', 'paid_at')
+    list_filter = ('status', 'provider')
+    search_fields = ('reference', 'enrollment__student__first_name', 'enrollment__student__last_name')
+    readonly_fields = ('enrollment', 'provider', 'reference', 'amount', 'currency', 'access_days',
+                       'status', 'initiated_by', 'created_at', 'paid_at')
+    actions = ['recheck_with_paystack']
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.action(description="Re-check selected with Paystack")
+    def recheck_with_paystack(self, request, queryset):
+        settled = 0
+        for payment in queryset.filter(provider=Payment.Provider.PAYSTACK).exclude(status=Payment.Status.PAID):
+            try:
+                data = verify_transaction(payment.reference)
+            except PaystackError:
+                continue
+            if data.get('status') == 'success':
+                result = settle_payment(payment.reference, amount_minor=data.get('amount'),
+                                        currency=data.get('currency'))
+                settled += int(bool(result and result.status == Payment.Status.PAID))
+        self.message_user(request, f"{settled} payment(s) confirmed.", messages.SUCCESS)
+
+
+
+
+
+    
+
+
+@admin.register(Price)
+class PriceAdmin(admin.ModelAdmin):
+    list_display = ('track', 'delivery_mode', 'region', 'currency', 'amount', 'access_days', 'effective_from', 'is_active')
+    list_filter = ('track', 'delivery_mode', 'region', 'is_active')

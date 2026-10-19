@@ -23,7 +23,7 @@ urlpatterns = [
     path('', include('apps.core.urls')),
     path('accounts/', include('apps.accounts.urls')),
     path('students/', include('apps.people.urls')),
-    
+    path('payments/', include('apps.people.pay_urls')),
 ]
 
 

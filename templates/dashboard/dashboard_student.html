@@ -22,7 +22,8 @@
             <div>
                 <h2 class="font-bold">{{ e.track.name }}</h2>
                 <p class="text-sm text-navy/60 mt-0.5">
-                    {% if e.status == 'ACTIVE' %}Continue learning
+                    {% if e.status == 'ACTIVE' and e.has_access %}Continue learning
+                    {% elif e.status == 'ACTIVE' %}Payment due
                     {% elif e.status == 'PENDING_PAYMENT' %}Pending payment confirmation
                     {% elif e.status == 'COMPLETED' %}Completed
                     {% else %}{{ e.get_status_display }}{% endif %}
