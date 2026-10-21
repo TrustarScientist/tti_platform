@@ -39,8 +39,8 @@ class CheckoutView(LoginRequiredMixin, View):
         try:
             _, url = pay.start_payment(enrollment, request.user, price,
                                        request.build_absolute_uri(reverse('pay-callback')))
-        except pay.PaystackError:
-            logger.error("Could not start a Paystack payment for enrollment %s", enrollment.pk)
+        except pay.PaystackError as exc:
+            logger.error("Could not start a Paystack payment for enrollment %s: %s", enrollment.pk, exc)
             messages.error(request, "We couldn't start the payment. Please try again in a moment.")
             return back
         return redirect(url)

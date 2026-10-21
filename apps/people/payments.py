@@ -31,7 +31,12 @@ def _call(method, path, payload=None):
         with urllib.request.urlopen(request, timeout=15) as response:
             body = json.loads(response.read().decode())
     except urllib.error.HTTPError as exc:
-        raise PaystackError(f"Paystack returned HTTP {exc.code}") from exc
+        try:
+            detail = json.loads(exc.read().decode()).get('message', '')
+        except Exception:
+            detail = ''
+        raise PaystackError(f"Paystack returned HTTP {exc.code}: {detail}") from exc
+        
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
         raise PaystackError("Could not reach Paystack.") from exc
     if not body.get('status'):
