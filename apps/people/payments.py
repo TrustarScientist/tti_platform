@@ -26,17 +26,24 @@ def _call(method, path, payload=None):
     data = json.dumps(payload).encode() if payload is not None else None
     request = urllib.request.Request(
         f"{settings.PAYSTACK_BASE_URL}{path}", data=data, method=method,
-        headers={'Authorization': f'Bearer {secret}', 'Content-Type': 'application/json'})
+        headers={
+            'Authorization': f'Bearer {secret}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            # Python's default User-Agent ("Python-urllib/x.y") is often refused by the CDN
+            # in front of API hosts, so identify ourselves plainly.
+            'User-Agent': 'TrustarSite/1.0 (+https://trustartech.com.ng)',
+        })
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
             body = json.loads(response.read().decode())
     except urllib.error.HTTPError as exc:
+        raw = exc.read().decode('utf-8', 'replace')
         try:
-            detail = json.loads(exc.read().decode()).get('message', '')
-        except Exception:
-            detail = ''
+            detail = json.loads(raw).get('message', '')
+        except ValueError:
+            detail = ' '.join(raw.split())[:200]  # not JSON, e.g. a CDN block page: keep a short excerpt
         raise PaystackError(f"Paystack returned HTTP {exc.code}: {detail}") from exc
-        
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
         raise PaystackError("Could not reach Paystack.") from exc
     if not body.get('status'):
