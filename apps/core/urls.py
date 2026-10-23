@@ -9,4 +9,5 @@ urlpatterns = [
     # dashboard per user type
     path('dashboard/', views.dashboard, name='dashboard'),
     path('healthz/', views.healthz, name='healthz'),
+    path('programs/', views.programs, name='programs'),
 ]

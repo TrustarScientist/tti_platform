@@ -183,6 +183,8 @@ class LessonView(LoginRequiredMixin, View):
                            .order_by('-submitted_at').first())
                 assessment_rows.append({'assessment': assessment, 'attempt': attempt})
 
+        days_left = enrollment.days_left()
+        needs_price = bool(pay_state) or (days_left is not None and days_left <= 7)
         return render(request, 'people/lesson.html', {
             'enrollment': enrollment, 'lesson': lesson,
             'is_owner': is_owner, 'assessment_rows': assessment_rows,
@@ -190,8 +192,10 @@ class LessonView(LoginRequiredMixin, View):
             'attendance': attendance_summary(enrollment) if enrollment.delivery_mode == 'COHORT' else None,
             'can_act': can_act_for_student(request.user, enrollment.student),
             'pay_state': pay_state,
-            'price': price_for(enrollment.track, enrollment.delivery_mode, region_for(request.user)) if pay_state else None,
+            'price': price_for(enrollment.track, enrollment.delivery_mode, region_for(request.user)) if needs_price else None,
             'can_pay': can_manage_student(request.user, enrollment.student),
+            'days_left': days_left,
+            'late_days': -days_left if (days_left is not None and days_left < 0) else 0,
         })
 
 

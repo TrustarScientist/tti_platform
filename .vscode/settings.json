@@ -1,3 +1,4 @@
 {
-  "livePreview.defaultPreviewPath": "/about-me.htm"
+  "livePreview.defaultPreviewPath": "/about-me.htm",
+  "python.terminal.useEnvFile": true
 }

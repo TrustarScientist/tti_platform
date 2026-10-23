@@ -361,6 +361,12 @@ class Enrollment(models.Model):
             self.activated_at = timezone.now()
         self.save(update_fields=['paid_through', 'status', 'activated_at'])
 
+    def days_left(self, today=None):
+        """Days of paid access left (negative = past due), or None when there is no expiry."""
+        if self.status != self.Status.ACTIVE or self.billed_to == self.BilledTo.SCHOOL or self.paid_through is None:
+            return None
+        return (self.paid_through - (today or timezone.localdate())).days
+
 
     def save(self, *args, **kwargs):
         # ended_at follows status, so every route (admin, views, resume) keeps it right.

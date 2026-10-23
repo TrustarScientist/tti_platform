@@ -1,0 +1,72 @@
+<!-- templates/public/programs.html -->
+{% extends "base_public.html" %}
+{% block title %}Programs and prices | Trustar{% endblock %}
+{% block content %}
+<section class="max-w-5xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold">Programs &amp; prices</h1>
+    <p class="text-navy/70 mt-2 max-w-2xl">Hands-on technology learning for children and adults. Pick a track, choose how you want to learn, and start. Not sure? <a href="#talk" class="text-blue hover:underline">Talk to us</a>.</p>
+
+    <div class="mt-8 space-y-6">
+        {% for card in cards %}
+        <article class="bg-white rounded-2xl border border-[#dbeafe] p-6">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 class="text-xl font-bold">{{ card.track.name }}</h2>
+                {% if card.track.age_range %}<span class="text-sm text-navy/60">Ages {{ card.track.age_range }}</span>{% endif %}
+            </div>
+            {% if card.track.description %}<p class="text-sm text-navy/70 mt-2">{{ card.track.description }}</p>{% endif %}
+
+            <div class="grid sm:grid-cols-3 gap-3 mt-5">
+                {% for f in card.formats %}
+                <div class="rounded-xl border border-[#dbeafe] p-4">
+                    <p class="font-medium">{{ f.title }}</p>
+                    <p class="text-xs text-navy/60 mt-1">{{ f.blurb }}</p>
+                    <p class="mt-3 font-bold text-blue">{% if f.price %}{{ f.price.label }}{% else %}Ask us{% endif %}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if card.classes %}
+            <div class="mt-5">
+                <p class="text-sm font-medium">Open classes</p>
+                <ul class="mt-2 space-y-1 text-sm text-navy/70">
+                    {% for c in card.classes %}
+                    <li>{{ c.cohort.name }}{% if c.cohort.start_date %} · starts {{ c.cohort.start_date|date:"j M Y" }}{% endif %}{% if c.cohort.schedule_note %} · {{ c.cohort.schedule_note }}{% endif %}{% if c.seats_left != None %} · {{ c.seats_left }} seat{{ c.seats_left|pluralize }} left{% endif %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="mt-5">
+                {% if user.is_authenticated %}<a href="{% url 'dashboard' %}" class="btn-primary !py-2 !px-5 !text-sm">Enroll from your dashboard</a>{% else %}<a href="{% url 'signup' %}" class="btn-primary !py-2 !px-5 !text-sm">Create an account to enroll</a>{% endif %}
+            </div>
+        </article>
+        {% empty %}
+        <p class="text-navy/60">Programs are being updated. Please check back soon, or talk to us below.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section id="talk" class="bg-[#F5F9FF] border-t border-[#dbeafe]">
+    <div class="max-w-5xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-8">
+        <div>
+            <h2 class="text-2xl font-bold">Not sure where to start?</h2>
+            <p class="text-sm text-navy/70 mt-2">Tell us a little and we'll recommend the right track and class. Or message us directly.</p>
+            <a href="https://wa.me/message/CXXZKUTZKSDXI1" target="_blank" rel="noopener" hx-boost="false" class="inline-flex items-center gap-2 mt-4 rounded-full border-[1.5px] border-navy/30 px-5 py-2 text-sm font-medium hover:bg-white"><i class="ph ph-whatsapp-logo text-lg"></i> Chat on WhatsApp</a>
+        </div>
+        <div>
+            {% include "partials/_messages.html" %}
+            <form method="post" action="{% url 'programs' %}#talk" hx-boost="false" class="bg-white rounded-2xl border border-[#dbeafe] p-6 space-y-4">
+                {% csrf_token %}
+                {% include "partials/_field.html" with field=form.name %}
+                {% include "partials/_field.html" with field=form.contact %}
+                {% include "partials/_field.html" with field=form.child_age %}
+                {% include "partials/_field.html" with field=form.interest %}
+                {% include "partials/_field.html" with field=form.message %}
+                <div class="hidden" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+                {% include "partials/_submit_button.html" with label="Send" loading="Sending…" %}
+                <p class="text-xs text-navy/50">We'll only use these details to reply to you about Trustar programs.</p>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -19,6 +19,8 @@ import hmac
 import json
 from unittest import mock
 
+from apps.core.models import Lead
+
 
 
 PASSWORD = 'pw-12345-test'
@@ -429,3 +431,45 @@ class PaymentTests(Base):
         self.assertContains(page, 'Payment due')
         self.assertContains(page, 'Pay ₦4,000') # Tip: simplify assertion to match 'Pay ' or '4,000' if formatting differs
         self.assertNotContains(page, 'Meet the screen')
+
+
+
+class ProgramsTests(Base):
+    def test_public_page_lists_public_tracks_prices_and_open_cohorts_only(self):
+        Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=4000)
+        page = self.client.get(reverse('programs'))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Foundations')
+        self.assertContains(page, '₦4,000 / month')
+        self.assertContains(page, 'Public B1')
+        self.assertNotContains(page, 'CNS Rockgold')
+        self.assertNotContains(page, 'Rockgold Term 1')
+
+    def test_enquiry_is_saved_once_and_bots_are_ignored(self):
+        url = reverse('programs')
+        good = {'name': 'Ada Obi', 'contact': '08012345678', 'child_age': '7',
+                'interest': 'Foundations', 'message': 'Hello'}
+        self.client.post(url, good)
+        self.client.post(url, good)  # same contact within a day: no duplicate
+        self.assertEqual(Lead.objects.count(), 1)
+        self.client.post(url, {**good, 'contact': 'bot@example.com', 'website': 'http://spam'})
+        self.assertEqual(Lead.objects.count(), 1)  # hidden field filled: nothing stored
+        bad = self.client.post(url, {**good, 'contact': 'abc'})
+        self.assertEqual(Lead.objects.count(), 1)
+        self.assertContains(bad, 'phone number or an email')
+
+
+class RenewalPromptTests(Base):
+    def test_renew_button_appears_only_near_the_end_of_paid_time(self):
+        Price.objects.create(track=self.track, delivery_mode=SELF_PACED, amount=4000)
+        kid = Student.objects.create(first_name='Near', last_name='End')
+        StudentGuardian.objects.create(student=kid, guardian=self.parent,
+                                       relationship=StudentGuardian.Relationship.PARENT)
+        e = Enrollment.objects.create(student=kid, track=self.track, delivery_mode=SELF_PACED, status=ACTIVE,
+                                      enrolled_by=self.parent, paid_through=timezone.localdate() + timedelta(days=20))
+        self.client.force_login(self.parent)
+        url = reverse('student-lesson', args=[e.pk])
+        self.assertNotContains(self.client.get(url), 'Renew ₦4,000')
+        e.paid_through = timezone.localdate() + timedelta(days=5)
+        e.save()
+        self.assertContains(self.client.get(url), 'Renew ₦4,000 / month')

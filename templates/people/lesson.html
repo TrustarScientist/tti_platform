@@ -30,9 +30,18 @@
     </div>
 
     {% elif lesson %}
-    <!-- templates/people/lesson.html — replace just the COMPLETED banner block -->
-    {% if enrollment.status == 'COMPLETED' %}
-    <div class="bg-[#f0fdfa] border border-teal/40 rounded-2xl p-4 mt-4 mb-4">
+    <!--  -->
+        {% if days_left != None and days_left <= 7 and price and can_pay %}
+    <div class="mt-4 rounded-xl border border-gold/60 bg-[#FFFBEB] px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm">{% if days_left >= 0 %}Paid through {{ enrollment.paid_through|date:"j M" }}: {{ days_left }} day{{ days_left|pluralize }} left.{% else %}Payment is {{ late_days }} day{{ late_days|pluralize }} late. Access pauses soon.{% endif %}</p>
+        <form method="post" action="{% url 'pay-checkout' enrollment.pk %}" hx-boost="false">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary !py-2 !px-4 !text-sm">Renew {{ price.label }}</button>
+        </form>
+    </div>
+        {% endif %}
+        {% if enrollment.status == 'COMPLETED' %}
+        <div class="bg-[#f0fdfa] border border-teal/40 rounded-2xl p-4 mt-4 mb-4">
         <p class="font-medium text-[#0e7490]">🎉 {{ enrollment.student.first_name }} has completed {{ enrollment.track.name }}!</p>
         {% if can_resume %}
         <form method="post" action="{% url 'student-resume-enrollment' enrollment.pk %}" class="mt-3">

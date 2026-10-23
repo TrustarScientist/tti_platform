@@ -1,0 +1,28 @@
+<!-- templates/base_public.html -->
+{% extends "base.html" %}
+{% load static %}
+{% block body %}
+<div class="min-h-screen flex flex-col bg-white">
+    <header class="border-b border-[#dbeafe]">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="{% url 'index' %}" hx-boost="false" class="flex items-center gap-2.5">
+                <img src="{% static 'img/tti-logo.png' %}" alt="" class="w-9 h-9 rounded-full object-cover" />
+                <span class="font-syne font-bold text-lg text-navy">Trustar<span class="text-baby">.</span></span>
+            </a>
+            <nav class="flex items-center gap-4 text-sm font-medium">
+                <a href="{% url 'programs' %}" class="text-navy hover:text-blue">Programs</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn-primary !py-2 !px-4 !text-sm">Dashboard</a>
+                {% else %}
+                <a href="{% url 'login' %}" class="text-navy hover:text-blue">Log in</a>
+                <a href="{% url 'signup' %}" class="btn-primary !py-2 !px-4 !text-sm">Sign up</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    <main id="main-content" class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="py-6 text-center text-xs text-navy/40">&copy; {% now "Y" %} Trustar Tech Institute</footer>
+</div>
+{% endblock %}
