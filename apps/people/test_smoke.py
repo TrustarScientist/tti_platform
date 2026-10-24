@@ -88,7 +88,7 @@ class Base(TestCase):
 
 class PageTests(Base):
     def test_public_pages_load(self):
-        for name in ('index', 'login', 'signup', 'healthz'):
+        for name in ('index', 'login', 'signup', 'healthz', 'programs', 'terms', 'privacy'):
             self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
 
     def test_anonymous_visitors_are_sent_to_login(self):
@@ -292,6 +292,12 @@ class MoneyTests(Base):
         e.status = ACTIVE
         e.save()
         self.assertIsNone(e.ended_at)
+    def test_minimum_billing_tops_up_a_small_class(self):
+        self.school.billing_minimum = 4
+        self.school.save()
+        invoice, _ = self._invoice()  # one student at 5000
+        self.assertEqual(invoice.amount_naira, 20000)  # 1 student + 3 unfilled places
+        self.assertEqual(invoice.student_count, 1)
 
 
 
@@ -458,6 +464,12 @@ class ProgramsTests(Base):
         self.assertEqual(Lead.objects.count(), 1)
         self.assertContains(bad, 'phone number or an email')
 
+    @override_settings(ADMIN_NOTIFY_EMAIL='me@example.com')
+    def test_enquiry_emails_the_admin_and_acknowledges_the_parent(self):
+        from django.core import mail
+        self.client.post(reverse('programs'), {'name': 'Ada', 'contact': 'ada@example.com'})
+        self.assertEqual(sorted(m.to[0] for m in mail.outbox), ['ada@example.com', 'me@example.com'])
+
 
 class RenewalPromptTests(Base):
     def test_renew_button_appears_only_near_the_end_of_paid_time(self):
@@ -473,3 +485,44 @@ class RenewalPromptTests(Base):
         e.paid_through = timezone.localdate() + timedelta(days=5)
         e.save()
         self.assertContains(self.client.get(url), 'Renew ₦4,000 / month')
+
+
+class SignupConsentTests(Base):
+    def test_signup_needs_consent_and_records_when_it_was_given(self):
+        data = {'role': 'PARENT', 'first_name': 'New', 'last_name': 'Parent', 'email': 'new@example.com',
+                'password1': 'Sturdy-pass-9876', 'password2': 'Sturdy-pass-9876'}
+        self.client.post(reverse('signup'), data)
+        self.assertFalse(TUser.objects.filter(email='new@example.com').exists())
+        self.client.post(reverse('signup'), {**data, 'accept_terms': 'on'})
+        self.assertIsNotNone(TUser.objects.get(email='new@example.com').terms_accepted_at)
+
+
+class PlanTests(Base):
+    def setUp(self):
+        for code, label, amount in (('WEEKLY_1', '1 session a week', 30000), ('WEEKLY_2', '2 sessions a week', 55000)):
+            Price.objects.create(track=self.track, delivery_mode=Enrollment.DeliveryMode.ONE_ON_ONE,
+                                 plan_code=code, plan_label=label, amount=amount, access_days=28)
+        self.kid = Student.objects.create(first_name='Plan', last_name='Kid')
+        StudentGuardian.objects.create(student=self.kid, guardian=self.parent,
+                                       relationship=StudentGuardian.Relationship.PARENT)
+        self.url = reverse('student-enroll-delivery', args=[self.kid.pk, self.track.pk])
+
+    def test_one_on_one_shows_both_weekly_plans_with_four_week_access(self):
+        self.client.force_login(self.parent)
+        page = self.client.get(self.url)
+        self.assertContains(page, '1 session a week')
+        self.assertContains(page, '₦30,000 / 4 weeks')
+        self.assertContains(page, '₦55,000 / 4 weeks')
+
+    @override_settings(PAYSTACK_SECRET_KEY='sk_test_unit')
+    @mock.patch('apps.people.payments.initialize_transaction')
+    def test_the_chosen_plan_is_remembered_and_charged(self, init):
+        init.return_value = {'authorization_url': 'https://checkout.paystack.com/abc'}
+        self.client.force_login(self.parent)
+        self.client.post(self.url, {'delivery': 'ONE_ON_ONE:WEEKLY_2'})
+        enrollment = Enrollment.objects.get(student=self.kid)
+        self.assertEqual(enrollment.plan_code, 'WEEKLY_2')
+        self.client.post(reverse('pay-checkout', args=[enrollment.pk]))
+        payment = Payment.objects.get(enrollment=enrollment)
+        self.assertEqual((payment.amount, payment.access_days), (55000, 28))
+        self.assertEqual(init.call_args.kwargs['amount_minor'], 5500000)

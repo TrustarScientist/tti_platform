@@ -20,7 +20,7 @@
                 <div class="rounded-xl border border-[#dbeafe] p-4">
                     <p class="font-medium">{{ f.title }}</p>
                     <p class="text-xs text-navy/60 mt-1">{{ f.blurb }}</p>
-                    <p class="mt-3 font-bold text-blue">{% if f.price %}{{ f.price.label }}{% else %}Ask us{% endif %}</p>
+                    {% for p in f.plans %}<p class="mt-2 text-sm"><span class="font-bold text-blue">{{ p.label }}</span>{% if p.plan_label %} <span class="text-navy/60">· {{ p.plan_label }}</span>{% endif %}</p>{% empty %}<p class="mt-3 font-bold text-blue">Ask us</p>{% endfor %}
                 </div>
                 {% endfor %}
             </div>

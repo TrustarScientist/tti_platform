@@ -35,6 +35,9 @@ class TUser(AbstractUser):
     # no default email appearing here since it's already the username field
     REQUIRED_FIELDS = []
 
+    # 
+    terms_accepted_at = models.DateTimeField(null=True, blank=True)
+
     school_name = models.CharField(
         max_length=150, blank=True,
         help_text="School partners only: the school this account represents.",

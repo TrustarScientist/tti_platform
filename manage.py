@@ -6,7 +6,9 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tti_platform.settings')
+    # `manage.py test` always uses the throwaway test settings, so tests can never touch a real database.
+    default_settings = 'tti_platform.settings_test' if sys.argv[1:2] == ['test'] else 'tti_platform.settings'
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', default_settings)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

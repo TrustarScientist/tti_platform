@@ -14,10 +14,12 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.people.models import Enrollment, Track
-from apps.people.services import open_cohorts_for, price_for, region_for, seats_left
+from apps.people.services import open_cohorts_for, plans_for, region_for, seats_left
 
 from .forms import LeadForm
 from .models import Lead
+from .notify import notify_new_lead
+
 
 
 def index(request):
@@ -104,7 +106,7 @@ def _program_cards(user):
         offered = {Enrollment.DeliveryMode.COHORT: track.offers_cohort,
                    Enrollment.DeliveryMode.ONE_ON_ONE: track.offers_one_on_one,
                    Enrollment.DeliveryMode.SELF_PACED: track.offers_self_paced}
-        formats = [{'title': title, 'blurb': blurb, 'price': price_for(track, mode, region)}
+        formats = [{'title': title, 'blurb': blurb, 'plans': plans_for(track, mode, region)}
                    for mode, title, blurb in FORMATS if offered[mode]]
         classes = []
         if track.offers_cohort:
@@ -128,9 +130,19 @@ def programs(request):
             recent = Lead.objects.filter(contact__iexact=data['contact'],
                                          created_at__gte=timezone.now() - timedelta(days=1)).exists()
             if not recent:
-                Lead.objects.create(
+                lead = Lead.objects.create(
                     name=data['name'], contact=data['contact'], child_age=data.get('child_age'),
                     interest=data.get('interest', ''), message=data.get('message', ''), source='programs')
+                notify_new_lead(lead)
         messages.success(request, "Thank you! We'll get back to you soon.")
         return back
     return render(request, 'public/programs.html', {'cards': _program_cards(request.user), 'form': form})
+
+
+# 
+def terms(request):
+    return render(request, 'legal/terms.html')
+
+
+def privacy(request):
+    return render(request, 'legal/privacy.html')

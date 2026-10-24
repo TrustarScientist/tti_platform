@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import Payment
+from apps.core import notify
 
 logger = logging.getLogger(__name__)
 
@@ -103,4 +104,5 @@ def settle_payment(reference, *, amount_minor, currency):
         payment.paid_at = timezone.now()
         payment.save(update_fields=['status', 'paid_at'])
         payment.enrollment.extend_access(payment.access_days)
+        transaction.on_commit(lambda: notify.payment_receipt(payment.pk))
         return payment

@@ -32,7 +32,8 @@ class CheckoutView(LoginRequiredMixin, View):
         if enrollment.billed_to != Enrollment.BilledTo.FAMILY or enrollment.status not in live:
             messages.info(request, "There's nothing to pay for this enrollment.")
             return back
-        price = price_for(enrollment.track, enrollment.delivery_mode, region_for(request.user))
+        price = price_for(enrollment.track, enrollment.delivery_mode, region_for(request.user),
+                          plan_code=enrollment.plan_code)
         if price is None:
             messages.error(request, "Online payment for this option isn't available yet. Please contact Trustar.")
             return back

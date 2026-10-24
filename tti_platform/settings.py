@@ -126,6 +126,7 @@ STORAGES = {
 
 TIME_ZONE = 'Africa/Lagos'
 
+ADMIN_NOTIFY_EMAIL = os.environ.get('ADMIN_NOTIFY_EMAIL', '')
 
 # settings.py
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')

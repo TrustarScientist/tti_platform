@@ -10,12 +10,22 @@
 
 </head>
 <body>
-   <section class="container">
-        <h1 style="color: aqua;">Mr. Daniel Godday (TrustarScientist)</h1>
-        <img src="https://i.ebayimg.com/images/g/qQ4AAOSw11Nj2SGk/s-l1600.webp" alt="Daniel Godday" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px;">
-        <p>Mr. Daniel Godday is a dedicated scientist at Trustar, 
-            specializing in cutting-edge research and development. 
-        </p>
-   </section>
+   <button>Generate Element</button>
+   <script>
+    let body = document.querySelector('body');
+    let btn = document.querySelector("button");
+    btn.onclick = function (){
+        let newElement = document.createElement('div');
+        newElement.style.height = '30px';
+        newElement.style.width = '30px';
+        newElement.style.margin = '10px';
+        newElement.style.backgroundColor = 'red';
+        body.appendChild(newElement);
+    }
+    
+    
+
+    
+   </script>
 </body>
 </html>

@@ -7,6 +7,8 @@ from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 
+DEFAULT_PLAN = 'MONTHLY'
+
 
 class School(models.Model):
     name = models.CharField(max_length=150)
@@ -16,6 +18,9 @@ class School(models.Model):
     contact_phone = models.CharField(max_length=20, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    billing_minimum = models.PositiveSmallIntegerField(
+        default=0, help_text="Fewest students billed per month under this school's agreement. 0 = bill actual headcount.")
 
     def __str__(self):
         return self.name
@@ -338,6 +343,7 @@ class Enrollment(models.Model):
     paid_through = models.DateField(
         null=True, blank=True,
         help_text="Last day covered by payment. Blank = no expiry (school-billed, or activated by hand).")
+    plan_code = models.CharField(max_length=30, default=DEFAULT_PLAN)
 
     def has_access(self, today=None):
         """Can lessons open right now? Allows ACCESS_GRACE_DAYS after paid_through."""
@@ -564,14 +570,17 @@ class AttendanceRecord(models.Model):
 
 
 
-# apps/people/models.py — add `from decimal import Decimal` to the imports at the top,
-# then add this class at the bottom
+
 class Price(models.Model):
-    """What one purchase of access costs, per track x format x region."""
+    """What one purchase of access costs, per track x format x plan x region."""
     CURRENCY_SYMBOLS = {'NGN': '₦', 'GBP': '£', 'USD': '$', 'EUR': '€'}
+    PERIOD_WORDS = {28: '4 weeks', 30: 'month', 90: '3 months'}
 
     track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name='prices')
     delivery_mode = models.CharField(max_length=20, choices=Enrollment.DeliveryMode.choices)
+    plan_code = models.CharField(max_length=30, default=DEFAULT_PLAN,
+                                 help_text="Stable key, e.g. MONTHLY, QUARTERLY, WEEKLY_1, WEEKLY_2.")
+    plan_label = models.CharField(max_length=60, blank=True, help_text='Shown to buyers, e.g. "1 session a week".')
     region = models.CharField(max_length=10, default='NG', help_text="Pricing region, e.g. NG, UK, INTL.")
     currency = models.CharField(max_length=3, default='NGN')
     amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Major units, e.g. 4000 for ₦4,000.")
@@ -581,11 +590,11 @@ class Price(models.Model):
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
-        ordering = ['track', 'delivery_mode', 'region', '-effective_from']
+        ordering = ['track', 'delivery_mode', 'plan_code', 'region', '-effective_from']
         constraints = [
             models.UniqueConstraint(
-                fields=['track', 'delivery_mode', 'region', 'currency', 'effective_from'],
-                name='one_price_per_product_region_date'),
+                fields=['track', 'delivery_mode', 'plan_code', 'region', 'currency', 'effective_from'],
+                name='one_price_per_product_plan_region_date'),
         ]
 
     def clean(self):
@@ -599,13 +608,11 @@ class Price(models.Model):
 
     def label(self):
         symbol = self.CURRENCY_SYMBOLS.get(self.currency, f"{self.currency} ")
-        period = 'month' if self.access_days == 30 else f"{self.access_days} days"
+        period = self.PERIOD_WORDS.get(self.access_days, f"{self.access_days} days")
         return f"{symbol}{self.amount:,.0f} / {period}"
 
     def __str__(self):
-        return f"{self.track} · {self.delivery_mode} · {self.region}: {self.label()}"
-
-
+        return f"{self.track} · {self.delivery_mode} · {self.plan_code} · {self.region}: {self.label()}"
 
 
 

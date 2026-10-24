@@ -36,7 +36,7 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(School)
 class SchoolAdmin(admin.ModelAdmin):
-    list_display = ('name', 'referral_code', 'is_active', 'created_at')
+    list_display = ('name', 'referral_code', 'billing_minimum', 'is_active', 'created_at')
     search_fields = ('name',)
 
     actions = ['issue_last_month_invoice']
@@ -104,7 +104,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
         done = 0
         live = [Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE]
         for e in queryset.filter(billed_to=Enrollment.BilledTo.FAMILY, status__in=live):
-            price = price_for(e.track, e.delivery_mode)
+            price = price_for(e.track, e.delivery_mode, plan_code=e.plan_code)
             days = price.access_days if price else 30
             Payment.objects.create(
                 enrollment=e, provider=Payment.Provider.MANUAL, reference=new_reference(),
@@ -231,5 +231,5 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(Price)
 class PriceAdmin(admin.ModelAdmin):
-    list_display = ('track', 'delivery_mode', 'region', 'currency', 'amount', 'access_days', 'effective_from', 'is_active')
+    list_display = ('track', 'delivery_mode', 'plan_code', 'plan_label', 'region', 'currency', 'amount', 'access_days', 'effective_from', 'is_active')
     list_filter = ('track', 'delivery_mode', 'region', 'is_active')

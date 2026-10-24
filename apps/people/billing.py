@@ -40,8 +40,17 @@ def issue_invoice(school, period):
     if not lines:
         return None, False
 
+    actual = len(lines)
+    shortfall = school.billing_minimum - actual
+    if shortfall > 0:
+        lines.append({
+            'student': f"Minimum billing: {shortfall} unfilled place{'s' if shortfall != 1 else ''} (agreement minimum {school.billing_minimum})",
+            'track': lines[0]['track'],
+            'amount': min(line['amount'] for line in lines) * shortfall,
+        })
+
     invoice = SchoolInvoice.objects.create(
         school=school, period=start_d, lines=lines,
-        amount_naira=sum(line['amount'] for line in lines), student_count=len(lines),
+        amount_naira=sum(line['amount'] for line in lines), student_count=actual,
     )
     return invoice, True

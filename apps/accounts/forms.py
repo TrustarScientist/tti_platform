@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .models import TUser
+from django.utils import timezone
 
 PUBLIC_ROLES = [
     (TUser.Role.STUDENT, 'Student', "I'm learning with Trustar."),
@@ -24,6 +25,10 @@ class SignupForm(UserCreationForm):
         widget=forms.TextInput(attrs={'placeholder': '+234...'}),
     )
     claim_code = forms.CharField(required=False, max_length=32)
+    
+    accept_terms = forms.BooleanField(
+        error_messages={'required': "Please accept the Terms and Privacy Policy to create an account."})
+
 
     class Meta(UserCreationForm.Meta):
         model = TUser
@@ -98,6 +103,7 @@ class SignupForm(UserCreationForm):
             user.status = TUser.Status.APPROVED
             user.school_name = ''
 
+        user.terms_accepted_at = timezone.now()
         if commit:
             user.save()
         return user

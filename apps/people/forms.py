@@ -2,7 +2,7 @@
 from datetime import date
 from django import forms
 from .models import Student, Track, Enrollment, Attempt
-from .services import tracks_for, open_cohorts_for, price_for, region_for
+from .services import open_cohorts_for, plans_for, region_for, tracks_for
 
 
 
@@ -57,11 +57,19 @@ class DeliveryChoiceForm(forms.Form):
         super().__init__(*args, **kwargs)
         choices = []
         if track is not None:
-            def priced(label, mode):
-                price = price_for(track, mode, region_for(user))
-                return f"{label} · {price.label()}" if price else label
+            region = region_for(user)
+            Mode = Enrollment.DeliveryMode
+
+            def plan_options(mode, title):
+                plans = plans_for(track, mode, region)
+                if not plans:  # no price set yet: still offered, without a figure
+                    return [(mode.value, title)]
+                return [(f"{mode.value}:{p.plan_code}",
+                         f"{title} — {p.plan_label} · {p.label()}" if p.plan_label else f"{title} · {p.label()}")
+                        for p in plans]
 
             if track.offers_cohort:
+                cohort_plan = (plans_for(track, Mode.COHORT, region) or [None])[0]
                 for cohort in open_cohorts_for(user, track):
                     label = cohort.name
                     if cohort.capacity:
@@ -73,15 +81,16 @@ class DeliveryChoiceForm(forms.Form):
                         label = f"{cohort.name} ({cohort.capacity - taken} seats left)"
                     if cohort.schedule_note:
                         label += f" — {cohort.schedule_note}"
-                    # School cohorts are billed on the school's invoice, so they show no family price.
-                    if not cohort.school_id:
-                        label = priced(label, Enrollment.DeliveryMode.COHORT)
+                    if not cohort.school_id and cohort_plan:  # school cohorts are billed on the school's invoice
+                        label += f" · {cohort_plan.label()}"
                     choices.append((f"cohort:{cohort.pk}", label))
             if track.offers_one_on_one:
-                choices.append(('ONE_ON_ONE', priced("One-on-one — paced by your instructor", Enrollment.DeliveryMode.ONE_ON_ONE)))
+                choices += plan_options(Mode.ONE_ON_ONE, "One-on-one (private lessons)")
             if track.offers_self_paced:
-                choices.append(('SELF_PACED', priced("Self-paced — learn on your own schedule", Enrollment.DeliveryMode.SELF_PACED)))
+                choices += plan_options(Mode.SELF_PACED, "Self-paced (learn when you like)")
         self.fields['delivery'].choices = choices
+
+
 # TRS related
 class AttemptForm(forms.ModelForm):
     class Meta:

@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from .models import (Attempt, AttendanceRecord, Cohort, Enrollment, Price, Student,
-                     StudentGuardian, Track, TRSScore)
+                     StudentGuardian, Track, TRSScore, DEFAULT_PLAN)
 
 
     
@@ -299,13 +299,26 @@ def consistency_score(student, today=None):
 DEFAULT_REGION = 'NG'
 
 
-def price_for(track, delivery_mode, region=DEFAULT_REGION, on=None):
-    """The price in force today for this track, format and region, or None if none is set."""
+def price_for(track, delivery_mode, region=DEFAULT_REGION, on=None, plan_code=DEFAULT_PLAN):
+    """The price in force today for one plan of this format, or None if none is set."""
     today = on or timezone.localdate()
     return (Price.objects
-            .filter(track=track, delivery_mode=delivery_mode, region=region,
+            .filter(track=track, delivery_mode=delivery_mode, region=region, plan_code=plan_code,
                     is_active=True, effective_from__lte=today)
             .order_by('-effective_from').first())
+
+
+def plans_for(track, delivery_mode, region=DEFAULT_REGION, on=None):
+    """The price in force today for each plan of this format, shortest period first."""
+    today = on or timezone.localdate()
+    rows = (Price.objects
+            .filter(track=track, delivery_mode=delivery_mode, region=region,
+                    is_active=True, effective_from__lte=today)
+            .order_by('plan_code', '-effective_from'))
+    current = {}
+    for row in rows:
+        current.setdefault(row.plan_code, row)  # newest row per plan comes first
+    return sorted(current.values(), key=lambda p: (p.access_days, p.amount))
 
 
 def region_for(user):

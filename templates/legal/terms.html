@@ -1,0 +1,73 @@
+<!-- templates/legal/terms.html -->
+{% extends "base_public.html" %}
+{% block title %}Terms of Service | Trustar{% endblock %}
+{% block content %}
+<style>
+    .legal h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.125rem; margin-top: 2rem; }
+    .legal p, .legal li { font-size: .9rem; line-height: 1.7; margin-top: .5rem; color: rgba(6,15,46,.8); }
+    .legal ul { list-style: disc; padding-left: 1.25rem; }
+</style>
+<article class="legal max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold">Terms of Service</h1>
+    <p>Version 0.1 · 23 October 2026</p>
+
+    <h2>1. About these terms</h2>
+    <p>By creating an account or using this site you agree to these terms and our <a href="{% url 'privacy' %}" class="text-blue hover:underline">Privacy Policy</a>. If you are under 18, a parent or guardian must agree for you. If you register a school, you confirm you can act for it.</p>
+
+    <h2>2. Accounts</h2>
+    <ul>
+        <li>Give accurate details and keep your password private. You are responsible for activity on your account.</li>
+        <li>Parents and guardians are responsible for their children's accounts and for supervising young learners online.</li>
+        <li>School accounts are reviewed and approved by us before use. We may decline or suspend them. Instructor accounts are created by us.</li>
+    </ul>
+
+    <h2>3. Programmes</h2>
+    <p>Trustar offers live group classes, self-paced learning, one-on-one lessons and school programmes. Enrolment is confirmed when payment is confirmed or, for school programmes, when the school adds the student. Places are limited. We may reschedule or merge classes, or cancel a class that does not reach a workable size. If we cancel and cannot offer a fair alternative, we will refund the unused part.</p>
+
+    <h2>4. Prices and payment</h2>
+    <ul>
+        <li>Prices are in naira and shown before you pay. We keep a copy of the price at checkout, so later price changes do not affect payments already made.</li>
+        <li>Each payment buys a period of access, such as one month or a four-week block of one-on-one lessons. We do not charge you automatically. When the period ends, you renew yourself.</li>
+        <li>After a paid period ends, access continues for [[FILL IN: 3]] days and then pauses until you renew. Your child's progress is kept.</li>
+        <li>Payments go through Paystack. We never see your card details.</li>
+    </ul>
+
+    <h2>5. Refunds, missed classes and rescheduling</h2>
+    <p>[[FILL IN: Daniel to decide. Proposed: if you are unhappy within 7 days of the start of a paid period and have attended no more than one class, tell us and we will refund that payment. After that, payment for time already used is not refundable. Missed group classes are not refunded. For one-on-one lessons, 24 hours' notice is needed to reschedule, and a missed session without notice is forfeited.]]</p>
+
+    <h2>6. School programmes</h2>
+    <ul>
+        <li>Schools are billed by Trustar as set out in a written quotation or agreement. If it conflicts with these terms, the written agreement wins.</li>
+        <li>Schools confirm they have the right to share students' details with us, including parental permission where needed.</li>
+        <li>Unless agreed otherwise, Trustar does not charge parents directly for school programmes.</li>
+        <li>A school can see only its own students' enrolment, attendance and progress.</li>
+    </ul>
+
+    <h2>7. Lessons and your work</h2>
+    <ul>
+        <li>Lessons, assessments, scoring methods and the Trustar name belong to Trustar. You may use them for your own or your child's learning. Do not copy, share, record or resell them.</li>
+        <li>A learner owns what they create. By submitting work, you let us store and use it to run the programme, such as marking it and reporting to guardians. We will not publish a child's work or name publicly without a parent or guardian's permission.</li>
+    </ul>
+
+    <h2>8. Behaving well</h2>
+    <p>Be respectful, do not share personal information beyond what is needed, do not try to reach other people's accounts or break the site, and do not record live classes without our permission. We may remove content or suspend accounts that break these rules, with a warning where reasonable.</p>
+
+    <h2>9. Assessments and results</h2>
+    <p>Scores, TRS profiles and reports reflect our assessment of work done and are for guidance. We do not promise exam results, jobs, income or admission to any school.</p>
+
+    <h2>10. Availability</h2>
+    <p>We work to keep the site running, but it may sometimes be unavailable. We may change or retire features, giving reasonable notice where a paid period is affected.</p>
+
+    <h2>11. Liability</h2>
+    <p>Nothing in these terms limits liability that cannot lawfully be limited. Otherwise, as far as the law allows, we are not liable for indirect or consequential loss, and our total liability for any claim is limited to what you paid us in the [[FILL IN: 3]] months before it. [[Lawyer: confirm.]]</p>
+
+    <h2>12. Ending</h2>
+    <p>You can stop using the site at any time and ask us to close your account. We may suspend or close accounts that break these terms or are unpaid, after notice.</p>
+
+    <h2>13. Law and disputes</h2>
+    <p>Nigerian law applies. Please talk to us first at [[FILL IN: email address]] and we will try to resolve any disagreement. The courts of [[FILL IN: Lagos State]] have jurisdiction. [[Lawyer: confirm.]]</p>
+
+    <h2>14. Changes</h2>
+    <p>We will update these terms from time to time and tell account holders about important changes. Using the site after a change means you accept it.</p>
+</article>
+{% endblock %}

@@ -16,7 +16,7 @@ from django.views.generic import CreateView, FormView
 from apps.accounts.models import TUser
 from .forms import AttemptForm, DeliveryChoiceForm, LinkChildForm, StudentForm, TrackChoiceForm
 from .models import (Assessment, Attempt, Cohort, Enrollment, SchoolInvoice, Student,
-                     StudentGuardian, TRSDimension, band_for)
+                     StudentGuardian, TRSDimension, band_for, DEFAULT_PLAN)
 from .services import (advance_if_lesson_complete, attendance_summary, build_roster_plan,
                        can_act_for_student, can_manage_student, consistency_score,
                        enroll_in_school_cohort, open_cohorts_for, parse_roster, price_for,
@@ -106,7 +106,6 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
         return ctx
 
     def form_valid(self, form):
-        # Already enrolled (double click, Back button, second tab)? Say so instead of erroring.
         already = Enrollment.objects.filter(
             student=self.student, track=self.track,
             status__in=[Enrollment.Status.PENDING_PAYMENT, Enrollment.Status.ACTIVE],
@@ -117,6 +116,7 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
 
         value = form.cleaned_data['delivery']
         cohort = None
+        plan_code = DEFAULT_PLAN
 
         if value.startswith('cohort:'):
             delivery_mode = Enrollment.DeliveryMode.COHORT
@@ -128,12 +128,13 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
                 messages.error(self.request, "That batch just filled up. Please choose another option.")
                 return self.form_invalid(form)
         else:
-            delivery_mode = value
+            delivery_mode, _, chosen_plan = value.partition(':')
+            plan_code = chosen_plan or DEFAULT_PLAN
 
         school_billed = bool(cohort and cohort.school_id)
         enrollment = Enrollment(
             student=self.student, track=self.track, delivery_mode=delivery_mode, cohort=cohort,
-            enrolled_by=self.request.user,
+            plan_code=plan_code, enrolled_by=self.request.user,
             school=(cohort.school if school_billed else getattr(self.request.user, 'school', None)),
             billed_to=Enrollment.BilledTo.SCHOOL if school_billed else Enrollment.BilledTo.FAMILY,
             status=Enrollment.Status.ACTIVE if school_billed else Enrollment.Status.PENDING_PAYMENT,
@@ -151,10 +152,8 @@ class EnrollDeliveryView(LoginRequiredMixin, FormView):
         if school_billed:
             messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name} — billed to {cohort.school.name}.")
             return redirect('dashboard')
-            
         messages.success(self.request, f"{self.student.first_name} is enrolled in {self.track.name}. Complete payment to start.")
         return redirect('student-lesson', enrollment_id=enrollment.pk)
-
 
 
 # lesson view
@@ -192,7 +191,8 @@ class LessonView(LoginRequiredMixin, View):
             'attendance': attendance_summary(enrollment) if enrollment.delivery_mode == 'COHORT' else None,
             'can_act': can_act_for_student(request.user, enrollment.student),
             'pay_state': pay_state,
-            'price': price_for(enrollment.track, enrollment.delivery_mode, region_for(request.user)) if needs_price else None,
+            'price': price_for(enrollment.track, enrollment.delivery_mode, region_for(request.user),
+                               plan_code=enrollment.plan_code) if needs_price else None,
             'can_pay': can_manage_student(request.user, enrollment.student),
             'days_left': days_left,
             'late_days': -days_left if (days_left is not None and days_left < 0) else 0,

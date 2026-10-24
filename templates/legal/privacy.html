@@ -1,0 +1,62 @@
+<!-- templates/legal/privacy.html -->
+{% extends "base_public.html" %}
+{% block title %}Privacy Policy | Trustar{% endblock %}
+{% block content %}
+<style>
+    .legal h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.125rem; margin-top: 2rem; }
+    .legal p, .legal li { font-size: .9rem; line-height: 1.7; margin-top: .5rem; color: rgba(6,15,46,.8); }
+    .legal ul { list-style: disc; padding-left: 1.25rem; }
+</style>
+<article class="legal max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold">Privacy Policy</h1>
+    <p>Version 0.1 · 23 October 2026</p>
+
+    <h2>1. Who we are</h2>
+    <p>Trustar Tech Institute ("Trustar", "we") runs this website and the learning programmes on it. [[FILL IN: registered business name, registration number if any, and address]]. For questions about your data, write to [[FILL IN: privacy email address]].</p>
+
+    <h2>2. What we collect</h2>
+    <ul>
+        <li><strong>Your account:</strong> name, email, phone number (optional) and a password, which we store scrambled and never in readable form.</li>
+        <li><strong>Children's details:</strong> a parent, guardian or school adds a child's first and last name and, optionally, a date of birth.</li>
+        <li><strong>Learning records:</strong> lessons opened, answers and files submitted, scores, instructor feedback, attendance and our TRS profile.</li>
+        <li><strong>Payments:</strong> Paystack processes payments. We receive the amount, status and reference. We never see or store card numbers or bank logins.</li>
+        <li><strong>Enquiries:</strong> what you type into our enquiry form, such as your name, phone or email, a child's age and your message.</li>
+        <li><strong>Technical data:</strong> a login cookie, and standard server logs (IP address, browser type, pages requested) used for security.</li>
+    </ul>
+
+    <h2>3. Why we use it</h2>
+    <p>To run accounts and classes, show parents and schools progress, take payments and send receipts or invoices, answer enquiries, keep the site secure, and improve our lessons. We do not sell personal data and we do not show advertising.</p>
+
+    <h2>4. Children</h2>
+    <ul>
+        <li>We collect children's details from parents, guardians and schools, not from third parties.</li>
+        <li>A parent or guardian, or a school with the parent's permission, must add or approve a child's account. By adding a child you confirm you are entitled to do so.</li>
+        <li>A child's work and scores are visible to their guardians, their instructors, Trustar staff and, for school programmes, the school that enrolled them. Other children cannot see them.</li>
+        <li>We do not publish children's names or work publicly.</li>
+    </ul>
+    {# Update section 4 before portfolio or showcase pages launch. #}
+
+    <h2>5. Who we share data with</h2>
+    <ul>
+        <li>Guardians, instructors assigned to a class, Trustar staff, and school partners (only for their own students).</li>
+        <li>Services that work for us: Render (website hosting), Supabase (database, hosted in Ireland), Paystack (payments) and our email provider [[FILL IN once chosen]].</li>
+        <li>Authorities, where the law requires it.</li>
+    </ul>
+    <p>Our pages load fonts, icons and scripts from Google Fonts, unpkg and the Tailwind CDN, which can see your IP address when your browser fetches them. Because some of these services are outside Nigeria, your data may be processed abroad. [[Lawyer: confirm cross-border transfer wording under the Nigeria Data Protection Act 2023.]]</p>
+
+    <h2>6. Cookies</h2>
+    <p>We use only the cookies the site needs: one that keeps you logged in and one that protects forms from forgery. We do not use advertising or tracking cookies.</p>
+
+    <h2>7. How long we keep it</h2>
+    <p>While your account is active and for [[FILL IN: period]] afterwards. Payment and invoice records are kept as long as accounting and tax law require [[Lawyer: confirm period]]. You can ask us to delete a child's account and records, and we will unless the law requires us to keep something.</p>
+
+    <h2>8. Your rights</h2>
+    <p>You can ask to see, correct or delete your data, withdraw consent, or object to how we use it. Parents and guardians can do this for their children. Write to [[FILL IN: privacy email address]]; we aim to reply within [[FILL IN: 30]] days. You may also complain to the Nigeria Data Protection Commission.</p>
+
+    <h2>9. Security</h2>
+    <p>Connections use HTTPS, access is limited by role, and backups are kept privately. No system is perfectly secure. If a breach affects you, we will tell you and the regulator as the law requires.</p>
+
+    <h2>10. Changes</h2>
+    <p>We will update this page when things change and tell account holders about important changes.</p>
+</article>
+{% endblock %}

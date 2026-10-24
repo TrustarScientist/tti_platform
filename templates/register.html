@@ -54,6 +54,13 @@
     {% include "partials/_field.html" with field=form.password1 %}
     {% include "partials/_field.html" with field=form.password2 %}
     {% include "partials/_field.html" with field=form.claim_code %}
+        <div>
+        <label class="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="accept_terms" value="on" class="mt-1" {% if form.accept_terms.value %}checked{% endif %} required>
+            <span>I agree to the <a href="{% url 'terms' %}" target="_blank" hx-boost="false" class="text-blue hover:underline">Terms</a> and <a href="{% url 'privacy' %}" target="_blank" hx-boost="false" class="text-blue hover:underline">Privacy Policy</a>. If I add a child, I am their parent or guardian, or I am authorised by their school.</span>
+        </label>
+        {% for error in form.accept_terms.errors %}<p class="text-xs text-red-600 mt-1.5">{{ error }}</p>{% endfor %}
+    </div>
     {% include "partials/_submit_button.html" with label="Create account" %}
 </form>
 {% endblock %}

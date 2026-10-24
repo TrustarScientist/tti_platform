@@ -9,7 +9,9 @@ CHECKS = [  # (path, expected status, text that must appear)
     ('/accounts/login/', 200, 'Log in'),
     ('/accounts/signup/', 200, 'Create'),
     ('/students/teach/', 200, 'Log in'),         # redirects to login; must not 500
-    ('/payments/paystack/webhook/', 405, ''),    # POST-only endpoint, exists after this deploy
+    ('/payments/paystack/webhook/', 405, ''), 
+    ('/terms/', 200, 'Terms of Service'),
+    ('/privacy/', 200, 'Privacy Policy'),
 ]
 
 failures = 0
