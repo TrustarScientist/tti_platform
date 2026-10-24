@@ -526,3 +526,16 @@ class PlanTests(Base):
         payment = Payment.objects.get(enrollment=enrollment)
         self.assertEqual((payment.amount, payment.access_days), (55000, 28))
         self.assertEqual(init.call_args.kwargs['amount_minor'], 5500000)
+
+class MailBackendTests(TestCase):
+    @override_settings(BREVO_API_KEY='k', DEFAULT_FROM_EMAIL='Trustar <hello@trustartech.com.ng>',
+                       EMAIL_BACKEND='apps.core.mail_backends.BrevoApiBackend')
+    @mock.patch('apps.core.mail_backends.urllib.request.urlopen')
+    def test_brevo_backend_posts_sender_recipient_and_body(self, urlopen):
+        from django.core.mail import send_mail
+        send_mail('Hi', 'Body', None, ['a@example.com'])
+        request = urlopen.call_args.args[0]
+        payload = json.loads(request.data)
+        self.assertEqual(payload['sender']['email'], 'hello@trustartech.com.ng')
+        self.assertEqual(payload['to'], [{'email': 'a@example.com'}])
+        self.assertEqual(request.get_header('Api-key'), 'k')

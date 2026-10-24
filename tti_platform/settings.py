@@ -123,6 +123,8 @@ STORAGES = {
     },
 }
 
+EMAIL_ASYNC = os.environ.get('EMAIL_ASYNC', 'True') == 'True'
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
 
 TIME_ZONE = 'Africa/Lagos'
 

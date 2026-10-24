@@ -1,5 +1,6 @@
 # apps/core/notify.py
 import logging
+import threading
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -7,13 +8,21 @@ from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
 
-def _send(subject, body, to):
+def _deliver(subject, body, to):
     try:
         send_mail(subject, body, None, [to], fail_silently=False)
-        return True
     except Exception:
-        logger.exception("Email failed: %s", subject)  # the address is deliberately left out of the log
-        return False
+        # The log names the mail server, never the recipient.
+        logger.exception("Email failed via %s:%s: %s",
+                         settings.EMAIL_HOST or settings.EMAIL_BACKEND, settings.EMAIL_PORT, subject)
+
+
+def _send(subject, body, to):
+    """Send in the background, so an unreachable mail server never holds up a page."""
+    if getattr(settings, 'EMAIL_ASYNC', True):
+        threading.Thread(target=_deliver, args=(subject, body, to), daemon=True).start()
+    else:
+        _deliver(subject, body, to)
 
 
 def notify_new_lead(lead):

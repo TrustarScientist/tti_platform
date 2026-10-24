@@ -13,3 +13,5 @@ STORAGES = {
     'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
 }
 PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']  # fast, tests only
+
+EMAIL_ASYNC = False
