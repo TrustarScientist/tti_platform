@@ -48,6 +48,10 @@ class BrevoApiBackend(BaseEmailBackend):
                 'subject': message.subject,
                 'textContent': message.body,
             }
+            reply_to = message.reply_to[0] if message.reply_to else getattr(settings, 'EMAIL_REPLY_TO', '')
+            if reply_to:
+                payload['replyTo'] = {'email': reply_to}
+            
             request = urllib.request.Request(
                 'https://api.brevo.com/v3/smtp/email', data=json.dumps(payload).encode(), method='POST',
                 headers={'api-key': key, 'Content-Type': 'application/json', 'Accept': 'application/json',

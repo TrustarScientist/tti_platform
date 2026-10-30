@@ -125,7 +125,7 @@ STORAGES = {
 
 EMAIL_ASYNC = os.environ.get('EMAIL_ASYNC', 'True') == 'True'
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
-
+EMAIL_REPLY_TO = os.environ.get('EMAIL_REPLY_TO', '')
 TIME_ZONE = 'Africa/Lagos'
 
 ADMIN_NOTIFY_EMAIL = os.environ.get('ADMIN_NOTIFY_EMAIL', '')
