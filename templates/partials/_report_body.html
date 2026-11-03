@@ -1,0 +1,30 @@
+<!-- templates/partials/_report_body.html -->
+<div class="space-y-5 text-sm">
+    {% if not public %}<p class="text-navy/70">Attendance: {{ snap.attendance.attended }} of {{ snap.attendance.total }} sessions</p>{% endif %}
+    <div>
+        <h3 class="font-bold">What we covered</h3>
+        {% if snap.covered %}<ul class="list-disc pl-5 mt-1 space-y-1 text-navy/80">{% for t in snap.covered %}<li>{{ t }}</li>{% endfor %}</ul>{% else %}<p class="mt-1 text-navy/60">No class topics were logged this month.</p>{% endif %}
+    </div>
+    <div>
+        <h3 class="font-bold">Work completed</h3>
+        {% if snap.completed %}
+        <ul class="mt-1 space-y-2">{% for w in snap.completed %}<li><span class="font-medium">{{ w.title }}</span>{% if not public %} · {{ w.score }} / {{ w.max }}{% if w.feedback %}<br><span class="text-navy/70">{{ w.feedback }}</span>{% endif %}{% endif %}</li>{% endfor %}</ul>
+        {% else %}<p class="mt-1 text-navy/60">No assessments were completed this month.</p>{% endif %}
+    </div>
+    {% if snap.lesson %}
+    <div>
+        <h3 class="font-bold">Where they are</h3>
+        <p class="mt-1 text-navy/80">Lesson {{ snap.lesson.position }} of {{ snap.lesson.total }}: {{ snap.lesson.title }}{% if snap.next_lesson %}. Up next: {{ snap.next_lesson }}{% endif %}</p>
+    </div>
+    {% endif %}
+    <div>
+        <h3 class="font-bold">Skills so far</h3>
+        <div class="flex flex-wrap gap-2 mt-2">{% for s in snap.skills %}<span class="rounded-full border border-[#dbeafe] bg-white px-3 py-1 text-xs">{{ s.name }}: {% if s.band %}{{ s.band }}{% else %}not yet scored{% endif %}</span>{% endfor %}</div>
+    </div>
+    {% if not public and report.trainer_note %}
+    <div class="rounded-xl bg-light p-4"><h3 class="font-bold">A note from the trainer</h3><p class="mt-1 whitespace-pre-line">{{ report.trainer_note }}</p></div>
+    {% endif %}
+    {% if report.next_step %}
+    <div class="rounded-xl border border-gold/50 bg-[#FFFBEB] p-4"><h3 class="font-bold">At home</h3><p class="mt-1">{{ report.next_step }}</p></div>
+    {% endif %}
+</div>

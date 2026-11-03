@@ -1,0 +1,25 @@
+<!-- templates/people/teach_reports.html -->
+{% extends "base_app.html" %}
+{% block title %}Reports | {{ cohort.name }} | Trustar{% endblock %}
+{% block content %}
+<a href="{% url 'teach-cohort' cohort.pk %}" class="text-sm text-navy/60 hover:text-navy">&larr; {{ cohort.name }}</a>
+<h1 class="text-2xl font-bold mt-3">Progress reports</h1>
+<p class="text-sm text-navy/60 mt-1">Drafts are built from attendance, completed work and skills. Nothing reaches a family until you publish it.</p>
+
+<form method="get" class="flex items-end gap-2 mt-5">
+    <div class="flex-1">
+        <label for="period" class="block text-sm font-medium mb-1.5">Month</label>
+        <select name="period" id="period">{% for p in periods %}<option value="{{ p.0|date:'Y-m' }}" {% if p.0 == period %}selected{% endif %}>{{ p.1 }}</option>{% endfor %}</select>
+    </div>
+    <button type="submit" class="rounded-full border-[1.5px] border-blue text-blue px-4 py-2.5 text-sm font-medium hover:bg-light">Show</button>
+</form>
+
+<div class="flex flex-wrap gap-2 mt-4">
+    <form method="post" action="{% url 'teach-reports-generate' cohort.pk %}">{% csrf_token %}<input type="hidden" name="period" value="{{ period|date:'Y-m' }}"><button type="submit" class="btn-primary !py-2 !px-4 !text-sm">{% if reports %}Refresh drafts{% else %}Generate drafts{% endif %} for {{ period|date:"F Y" }}</button></form>
+    {% if drafts %}<form method="post" action="{% url 'teach-reports-publish-all' cohort.pk %}" hx-confirm="Publish {{ drafts }} draft report(s) and email the families?">{% csrf_token %}<input type="hidden" name="period" value="{{ period|date:'Y-m' }}"><button type="submit" class="rounded-full border-[1.5px] border-navy/30 px-4 py-2 text-sm font-medium hover:bg-white">Publish all {{ drafts }} drafts</button></form>{% endif %}
+</div>
+
+<div class="mt-6">
+    {% for r in reports %}{% include "partials/_report_editor.html" %}{% empty %}<p class="text-sm text-navy/60">No reports yet for this month. Generate drafts above.</p>{% endfor %}
+</div>
+{% endblock %}

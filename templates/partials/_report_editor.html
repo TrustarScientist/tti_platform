@@ -1,0 +1,36 @@
+<!-- templates/partials/_report_editor.html -->
+<div class="bg-white rounded-2xl border {% if r.status == 'PUBLISHED' %}border-[#dbeafe]{% else %}border-gold/60{% endif %} p-5 mb-4">
+    <div class="flex items-center justify-between gap-3">
+        <h3 class="font-bold">{{ r.student.first_name }} {{ r.student.last_name }} <span class="font-normal text-navy/60">· {{ r.period_label }}</span></h3>
+        <span class="text-xs rounded-full px-2.5 py-1 {% if r.status == 'PUBLISHED' %}bg-[#f0fdfa] text-[#0e7490]{% else %}bg-[#FFFBEB] text-[#92400e]{% endif %}">{{ r.get_status_display }}</span>
+    </div>
+    <p class="text-xs text-navy/60 mt-1">Attendance {{ r.snapshot.attendance.attended }} of {{ r.snapshot.attendance.total }} · {{ r.snapshot.completed|length }} assessment{{ r.snapshot.completed|length|pluralize }} completed</p>
+    <details class="mt-3">
+        <summary class="cursor-pointer text-sm text-blue">Preview what the family sees</summary>
+        <div class="mt-3">{% include "partials/_report_body.html" with snap=r.snapshot report=r public=False %}</div>
+    </details>
+    <form method="post" action="{% url 'teach-report-save' r.pk %}" class="mt-4 space-y-3">
+        {% csrf_token %}
+        <textarea name="trainer_note" rows="3" maxlength="1000" placeholder="A note for the family (1 or 2 sentences)">{{ r.trainer_note }}</textarea>
+        <input type="text" name="next_step" maxlength="200" value="{{ r.next_step }}" placeholder="One thing to do at home, e.g. Ask to see their game">
+        <div class="flex gap-2">
+            <button type="submit" name="action" value="save" class="rounded-full border-[1.5px] border-blue text-blue px-4 py-2 text-sm font-medium hover:bg-light">Save</button>
+            {% if r.status == 'DRAFT' %}<button type="submit" name="action" value="publish" class="btn-primary !py-2 !px-4 !text-sm">Publish to family</button>{% endif %}
+        </div>
+    </form>
+    {% if r.status == 'PUBLISHED' %}
+    <div class="mt-4 pt-4 border-t border-[#eef3fb] text-sm">
+        {% if r.share_url %}
+        <p class="text-xs text-navy/60">Shareable link: works without a login, expires {{ r.share_expires_at|date:"j M" }}</p>
+        <p class="font-mono text-xs break-all select-all mt-1">{{ r.share_url }}</p>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+            <button type="button" data-copy="{{ r.share_url }}" class="inline-flex items-center rounded-full bg-navy text-white px-3 py-1 text-xs font-medium">Copy link</button>
+            <a href="https://wa.me/?text=Hello%21%20Here%20is%20{{ r.student.first_name|urlencode:'' }}%27s%20Trustar%20progress%20report%20for%20{{ r.period_label|urlencode:'' }}%3A%20{{ r.share_url|urlencode:'' }}" target="_blank" rel="noopener" hx-boost="false" class="inline-flex items-center gap-1 rounded-full border border-navy/30 px-3 py-1 text-xs font-medium"><i class="ph ph-whatsapp-logo"></i> Send on WhatsApp</a>
+            <form method="post" action="{% url 'report-share' r.pk %}" class="inline">{% csrf_token %}<input type="hidden" name="action" value="off"><button type="submit" class="text-xs underline text-navy/60">Turn link off</button></form>
+        </div>
+        {% else %}
+        <form method="post" action="{% url 'report-share' r.pk %}">{% csrf_token %}<input type="hidden" name="action" value="on"><button type="submit" class="text-sm font-medium text-blue hover:underline">Create a shareable link for the family</button></form>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

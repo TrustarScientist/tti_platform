@@ -1,6 +1,7 @@
 # apps/people/urls.py
 from django.urls import include, path
 from . import views
+from . import views_reports as r
 
 urlpatterns = [
     path('add/', views.StudentCreateView.as_view(), name='student-add'),
@@ -24,4 +25,8 @@ urlpatterns = [
     path('roster/', views.BulkRosterView.as_view(), name='student-bulk-roster'),
     # instructor specific views
     path('teach/', include('apps.people.teach_urls')),
+    # 
+    path('<int:pk>/reports/', r.ReportListView.as_view(), name='student-reports'),
+    path('reports/<int:report_id>/', r.ReportDetailView.as_view(), name='report-detail'),
+    path('reports/<int:report_id>/share/', r.ReportShareView.as_view(), name='report-share'),
 ]

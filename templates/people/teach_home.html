@@ -25,4 +25,8 @@
     <p class="text-sm text-navy/60 mt-1">Ask Trustar to add you to a cohort.</p>
 </div>
 {% endif %}
+  {% if one_on_one %}
+  <h2 class="text-lg font-bold mt-8 mb-3">One-on-one students</h2>
+  <ul class="space-y-2">{% for e in one_on_one %}<li class="bg-white rounded-xl border border-[#dbeafe] p-4"><a href="{% url 'teach-enrollment' e.pk %}" class="font-medium text-blue hover:underline">{{ e.student.first_name }} {{ e.student.last_name }}</a> <span class="text-sm text-navy/60">· {{ e.track.name }}</span></li>{% endfor %}</ul>
+  {% endif %}
 {% endblock %}

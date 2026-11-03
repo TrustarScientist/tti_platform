@@ -1,6 +1,6 @@
 # tti_platform/apps/core/urls.py
 from django.urls import path
-
+from apps.people.views_reports import shared_report
 from apps.core import views
 
 
@@ -13,4 +13,7 @@ urlpatterns = [
     # 
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
+    # 
+    
+    path('r/<str:token>/', shared_report, name='report-shared'),
 ]

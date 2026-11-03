@@ -11,6 +11,7 @@
 
 {% if profile %}
 <p class="text-sm mt-2"><a href="{% url 'student-trs-profile' profile.pk %}" class="text-blue hover:underline">View my TRS profile &rarr;</a></p>
+<p class="text-sm mt-1"><a href="{% url 'student-reports' profile.pk %}" class="text-blue hover:underline">My progress reports &rarr;</a></p>
 {% endif %}
 
 {% with enrollments=profile.enrollments.all %}

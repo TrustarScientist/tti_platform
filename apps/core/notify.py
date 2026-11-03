@@ -52,3 +52,16 @@ def payment_receipt(payment_id):
           f"for {e.student.first_name}'s place in {e.track.name}.\n\nReference: {payment.reference}\n"
           f"Access is paid through {paid_through}.\n\n— Trustar Tech Institute",
           payer.email)
+
+
+def report_published(report_id, url):
+    from apps.people.models import ProgressReport
+    from apps.people.reports import report_recipients
+    report = ProgressReport.objects.select_related('student', 'enrollment__track').filter(pk=report_id).first()
+    if report is None:
+        return
+    first = report.student.first_name
+    for to in report_recipients(report.student):
+        _send(f"{first}'s progress report for {report.period_label}",
+              f"Hello,\n\n{first}'s {report.enrollment.track.name} progress report for {report.period_label} "
+              f"is ready.\n\nOpen it here (you'll be asked to log in):\n{url}\n\n— Trustar Tech Institute", to)

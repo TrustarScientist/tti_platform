@@ -267,6 +267,11 @@ class Enrollment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     activated_at = models.DateTimeField(null=True, blank=True)
 
+    instructor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='one_on_one_students', limit_choices_to={'role': 'INSTRUCTOR'},
+        help_text="Who teaches this one-on-one student (admins can always teach).")
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -534,9 +539,12 @@ class SchoolInvoice(models.Model):
 
     
 
-    # apps/people/models.py — add at the bottom
+# apps/people/models.py — add at the bottom
 class ClassSession(models.Model):
-    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='sessions')
+    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, null=True, blank=True, related_name='sessions')
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, null=True, blank=True,
+                                   related_name='one_on_one_sessions',
+                                   help_text="For one-on-one lessons. Leave blank for cohort sessions.")
     date = models.DateField()
     topic = models.CharField(max_length=150, blank=True)
     taken_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
@@ -545,11 +553,15 @@ class ClassSession(models.Model):
 
     class Meta:
         ordering = ['-date']
-        constraints = [models.UniqueConstraint(fields=['cohort', 'date'], name='one_session_per_cohort_day')]
+        constraints = [
+            models.UniqueConstraint(fields=['cohort', 'date'], name='one_session_per_cohort_day'),
+            models.UniqueConstraint(fields=['enrollment', 'date'], name='one_session_per_enrollment_day'),
+            models.CheckConstraint(condition=models.Q(cohort__isnull=False) | models.Q(enrollment__isnull=False),
+                                   name='session_has_a_cohort_or_enrollment'),
+        ]
 
     def __str__(self):
-        return f"{self.cohort} — {self.date}"
-
+        return f"{self.cohort or self.enrollment} — {self.date}"
 
 class AttendanceRecord(models.Model):
     class Status(models.TextChoices):
@@ -614,8 +626,52 @@ class Price(models.Model):
     def __str__(self):
         return f"{self.track} · {self.delivery_mode} · {self.plan_code} · {self.region}: {self.label()}"
 
+# PROGRESS
+class ProgressReport(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = 'DRAFT', 'Draft'
+        PUBLISHED = 'PUBLISHED', 'Published'
 
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='reports')
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='reports')
+    period_start = models.DateField()
+    period_end = models.DateField()
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
+    trainer_note = models.TextField(blank=True)
+    next_step = models.CharField(max_length=200, blank=True)
+    snapshot = models.JSONField(default=dict, blank=True)  # frozen when published
+    share_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
+    share_expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    published_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                     null=True, blank=True, related_name='+')
 
+    class Meta:
+        ordering = ['-period_start']
+        constraints = [models.UniqueConstraint(fields=['enrollment', 'period_start'],
+                                               name='one_report_per_enrollment_month')]
+
+    @property
+    def period_label(self):
+        return f"{self.period_start:%B %Y}"
+
+    def share_is_live(self):
+        return bool(self.status == self.Status.PUBLISHED and self.share_token
+                    and self.share_expires_at and self.share_expires_at > timezone.now())
+
+    def enable_share(self, days=60):
+        self.share_token = secrets.token_urlsafe(24)
+        self.share_expires_at = timezone.now() + timedelta(days=days)
+        self.save(update_fields=['share_token', 'share_expires_at'])
+
+    def disable_share(self):
+        self.share_token = None
+        self.share_expires_at = None
+        self.save(update_fields=['share_token', 'share_expires_at'])
+
+    def __str__(self):
+        return f"{self.student} — {self.period_label} ({self.status})"
 
 
 

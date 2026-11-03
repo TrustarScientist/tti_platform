@@ -325,3 +325,33 @@ def region_for(user):
     """Pricing region for this user. Always NG until a second currency exists; later it will
     read the billing country chosen at checkout."""
     return DEFAULT_REGION
+
+
+def can_teach_enrollment(user, enrollment):
+    if not user.is_authenticated:
+        return False
+    if user.is_staff or user.role == user.Role.ADMIN:
+        return True
+    if enrollment.cohort_id:
+        return can_teach_cohort(user, enrollment.cohort)
+    return user.role == user.Role.INSTRUCTOR and enrollment.instructor_id == user.id
+
+
+def can_share_report(user, student):
+    """A guardian, or a student who has no guardian (an independent adult learner)."""
+    if not user.is_authenticated:
+        return False
+    if StudentGuardian.objects.filter(student=student, guardian=user).exists():
+        return True
+    return student.user_id == user.id and not student.guardianships.exists()
+
+
+def teachable_one_on_one(user):
+    qs = (Enrollment.objects
+          .filter(delivery_mode=Enrollment.DeliveryMode.ONE_ON_ONE, status=Enrollment.Status.ACTIVE)
+          .select_related('student', 'track').order_by('student__first_name'))
+    if user.is_staff or user.role == user.Role.ADMIN:
+        return qs
+    if user.role == user.Role.INSTRUCTOR:
+        return qs.filter(instructor=user)
+    return qs.none()

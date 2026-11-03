@@ -12,7 +12,7 @@ from django.utils import timezone
 from apps.accounts.models import TUser
 from .billing import issue_invoice, previous_month
 from .models import (Assessment, Attempt, ClassSession, Cohort, Enrollment, Lesson,
-                     Student, StudentGuardian, Track, TRSDimension, TRSScore, Price, Payment)
+                     Student, StudentGuardian, Track, TRSDimension, TRSScore, Price, Payment, ClassSession, AttendanceRecord, ProgressReport)
 from .services import consistency_score, price_for
 import hashlib
 import hmac
@@ -540,3 +540,97 @@ class MailBackendTests(TestCase):
         self.assertEqual(payload['to'], [{'email': 'a@example.com'}])
         self.assertEqual(request.get_header('Api-key'), 'k')
         self.assertEqual(payload['replyTo'], {'email': 'inbox@example.com'})
+
+
+@override_settings(EMAIL_ASYNC=False)
+class ReportTests(Base):
+    def setUp(self):
+        self.today = timezone.localdate()
+        self.month = self.today.replace(day=1)
+        session = ClassSession.objects.create(cohort=self.public_cohort, date=self.today, topic='Meet the screen')
+        AttendanceRecord.objects.create(session=session, enrollment=self.child_enrollment, status='PRESENT')
+        Attempt.objects.create(enrollment=self.child_enrollment, assessment=self.assessment,
+                               status=Attempt.Status.VERIFIED, score=80, feedback='Well done')
+
+    def _draft(self):
+        self.client.force_login(self.instructor)
+        self.client.post(reverse('teach-reports-generate', args=[self.public_cohort.pk]),
+                         {'period': f"{self.month:%Y-%m}"})
+        return ProgressReport.objects.get(enrollment=self.child_enrollment, period_start=self.month)
+
+    def _published(self):
+        report = self._draft()
+        self.client.post(reverse('teach-report-save', args=[report.pk]),
+                         {'action': 'publish', 'trainer_note': 'Great month', 'next_step': 'Ask to see the game'})
+        report.refresh_from_db()
+        return report
+
+    def test_draft_is_built_from_attendance_topics_and_completed_work(self):
+        snap = self._draft().snapshot
+        self.assertEqual(snap['attendance'], {'attended': 1, 'total': 1})
+        self.assertEqual(snap['covered'], ['Meet the screen'])
+        self.assertEqual(snap['completed'][0]['title'], 'Check-in')
+
+    def test_family_sees_nothing_until_publish_and_then_only_their_own(self):
+        from django.core import mail
+        report = self._draft()
+        url = reverse('report-detail', args=[report.pk])
+        self.client.force_login(self.parent)
+        self.assertEqual(self.client.get(url).status_code, 404)  # still a draft
+        self.client.force_login(self.instructor)
+        self.client.post(reverse('teach-report-save', args=[report.pk]),
+                         {'action': 'publish', 'trainer_note': 'Great month', 'next_step': 'Ask to see the game'})
+        self.assertEqual([m.to[0] for m in mail.outbox], ['parent@example.com'])
+        self.client.force_login(self.parent)
+        page = self.client.get(url)
+        self.assertContains(page, 'Great month')
+        self.assertContains(page, 'Ask to see the game')
+        self.client.force_login(self.other_parent)
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_share_link_is_limited_public_and_revocable(self):
+        report = self._published()
+        self.client.force_login(self.parent)
+        self.client.post(reverse('report-share', args=[report.pk]), {'action': 'on'})
+        report.refresh_from_db()
+        url = reverse('report-shared', args=[report.share_token])
+        self.client.logout()
+        page = self.client.get(url)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Tobi')
+        self.assertNotContains(page, 'Tobi Ade')
+        self.assertNotContains(page, 'Great month')  # the trainer's note stays private
+        self.assertIn('noindex', page['X-Robots-Tag'])
+        report.share_expires_at = timezone.now() - timedelta(minutes=1)
+        report.save()
+        self.assertEqual(self.client.get(url).status_code, 404)  # expired
+        report.enable_share()
+        self.client.force_login(self.parent)
+        self.client.post(reverse('report-share', args=[report.pk]), {'action': 'off'})
+        self.client.logout()
+        self.assertEqual(self.client.get(url).status_code, 404)  # switched off
+
+    def test_only_the_cohorts_own_trainer_can_work_on_its_reports(self):
+        report = self._draft()
+        self.client.force_login(self.stranger_instructor)
+        self.assertEqual(self.client.post(reverse('teach-report-save', args=[report.pk]),
+                                          {'action': 'publish'}).status_code, 403)
+        self.assertEqual(self.client.post(reverse('teach-reports-generate', args=[self.public_cohort.pk]),
+                                          {'period': f"{self.month:%Y-%m}"}).status_code, 403)
+
+    def test_one_on_one_sessions_feed_the_report(self):
+        kid = Student.objects.create(first_name='Solo', last_name='One')
+        StudentGuardian.objects.create(student=kid, guardian=self.parent,
+                                       relationship=StudentGuardian.Relationship.PARENT)
+        e = Enrollment.objects.create(student=kid, track=self.track, delivery_mode=Enrollment.DeliveryMode.ONE_ON_ONE,
+                                      status=ACTIVE, activated_at=timezone.now(), enrolled_by=self.parent)
+        url = reverse('teach-enrollment', args=[e.pk])
+        self.client.force_login(self.instructor)
+        self.assertEqual(self.client.get(url).status_code, 403)  # not assigned to this student
+        self.client.force_login(self.admin)
+        self.client.post(url, {'action': 'log_session', 'date': self.today.isoformat(),
+                               'topic': 'Loops', 'status': 'PRESENT'})
+        self.client.post(url, {'action': 'generate', 'period': f"{self.month:%Y-%m}"})
+        snap = ProgressReport.objects.get(enrollment=e).snapshot
+        self.assertEqual(snap['covered'], ['Loops'])
+        self.assertEqual(snap['attendance'], {'attended': 1, 'total': 1})

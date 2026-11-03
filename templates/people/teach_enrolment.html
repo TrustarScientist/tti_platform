@@ -1,0 +1,33 @@
+<!-- templates/people/teach_enrollment.html -->
+{% extends "base_app.html" %}
+{% block title %}{{ enrollment.student.first_name }} | One-on-one | Trustar{% endblock %}
+{% block content %}
+<a href="{% url 'teach-home' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Teaching</a>
+<h1 class="text-2xl font-bold mt-3">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</h1>
+<p class="text-sm text-navy/60 mt-1">One-on-one · {{ enrollment.track.name }}</p>
+
+<form method="post" class="bg-white rounded-2xl border border-[#dbeafe] p-5 mt-6 space-y-4">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="log_session">
+    <h2 class="font-bold">Log a session</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+        <div><label for="date" class="block text-sm font-medium mb-1.5">Date</label><input type="date" id="date" name="date" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}"></div>
+        <div><label for="status" class="block text-sm font-medium mb-1.5">Attendance</label><select id="status" name="status">{% for value, label in statuses %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+    </div>
+    <div><label for="topic" class="block text-sm font-medium mb-1.5">What was covered</label><input type="text" id="topic" name="topic" maxlength="150"></div>
+    {% include "partials/_submit_button.html" with label="Save session" loading="Saving…" %}
+</form>
+
+{% if sessions %}
+<ul class="mt-4 space-y-1 text-sm text-navy/70">{% for s in sessions %}<li>{{ s.date|date:"D j M" }} · {{ s.topic|default:"No topic" }}{% for rec in s.records.all %} · {{ rec.get_status_display }}{% endfor %}</li>{% endfor %}</ul>
+{% endif %}
+
+<h2 class="text-lg font-bold mt-8 mb-3">Progress reports</h2>
+<form method="post" class="flex items-end gap-2 mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="generate">
+    <div class="flex-1"><label for="period" class="block text-sm font-medium mb-1.5">Month</label><select name="period" id="period">{% for p in periods %}<option value="{{ p.0|date:'Y-m' }}">{{ p.1 }}</option>{% endfor %}</select></div>
+    <button type="submit" class="btn-primary !py-2.5 !px-4 !text-sm">Generate draft</button>
+</form>
+{% for r in reports %}{% include "partials/_report_editor.html" %}{% empty %}<p class="text-sm text-navy/60">No reports yet.</p>{% endfor %}
+{% endblock %}

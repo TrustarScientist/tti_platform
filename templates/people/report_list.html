@@ -1,0 +1,12 @@
+<!-- templates/people/report_list.html -->
+{% extends "base_app.html" %}
+{% block title %}Progress reports | Trustar{% endblock %}
+{% block content %}
+<a href="{% url 'dashboard' %}" class="text-sm text-navy/60 hover:text-navy">&larr; Back to dashboard</a>
+<h1 class="text-2xl font-bold mt-3">{{ student.first_name }}'s progress reports</h1>
+{% if reports %}
+<ul class="mt-5 space-y-3">{% for r in reports %}<li class="bg-white rounded-2xl border border-[#dbeafe] p-5"><a href="{% url 'report-detail' r.pk %}" class="font-bold text-blue hover:underline">{{ r.period_label }}</a><p class="text-sm text-navy/60 mt-0.5">{{ r.enrollment.track.name }}</p></li>{% endfor %}</ul>
+{% else %}
+<div class="bg-white rounded-2xl border border-dashed border-[#9db0d3] p-8 text-center mt-5"><p class="font-medium">No reports yet</p><p class="text-sm text-navy/60 mt-1">Reports appear here once the trainer publishes them, usually at the end of each month.</p></div>
+{% endif %}
+{% endblock %}

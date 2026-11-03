@@ -11,10 +11,17 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from .billing import issue_invoice, previous_month
-from .models import SchoolInvoice, Price, Payment
+from .models import SchoolInvoice, Price, Payment, ProgressReport
 from .payments import PaystackError, new_reference, settle_payment, verify_transaction
 from .services import price_for
 
+
+# 
+@admin.register(ProgressReport)
+class ProgressReportAdmin(admin.ModelAdmin):
+    list_display = ('student', 'enrollment', 'period_start', 'status', 'published_at')
+    list_filter = ('status',)
+    readonly_fields = ('snapshot', 'share_token', 'share_expires_at', 'created_at', 'published_at', 'published_by')
 #
 class PriceInline(admin.TabularInline):
     model = Price

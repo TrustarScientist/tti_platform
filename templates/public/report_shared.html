@@ -1,0 +1,13 @@
+<!-- templates/public/report_shared.html -->
+{% extends "base_public.html" %}
+{% block title %}{{ report.student.first_name }}'s progress | Trustar{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+<article class="max-w-xl mx-auto px-4 py-10">
+    <p class="text-xs font-medium text-blue uppercase tracking-wide">Trustar progress report</p>
+    <h1 class="text-3xl font-bold mt-1">{{ report.student.first_name }}</h1>
+    <p class="text-sm text-navy/60 mt-1">{{ report.enrollment.track.name }} · {{ report.period_label }}</p>
+    <div class="bg-white rounded-2xl border border-[#dbeafe] p-6 mt-6">{% include "partials/_report_body.html" with snap=snap report=report public=True %}</div>
+    <p class="text-sm text-navy/60 mt-6">Trustar Tech Institute teaches children and adults real technology skills. <a href="{% url 'programs' %}" class="text-blue hover:underline">See programs</a></p>
+</article>
+{% endblock %}

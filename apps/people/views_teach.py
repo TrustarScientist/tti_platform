@@ -11,7 +11,7 @@ from django.views import View
 
 from apps.accounts.models import TUser
 from .models import Attempt, AttendanceRecord, ClassSession, Cohort, Enrollment
-from .services import can_teach_cohort, teachable_cohorts, cohort_roster, verify_attempt, reject_attempt
+from .services import can_teach_cohort, teachable_cohorts, cohort_roster, verify_attempt, reject_attempt, teachable_one_on_one
 
 
 class TeacherRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -27,7 +27,7 @@ class TeachHomeView(TeacherRequiredMixin, View):
             waiting=Count('enrollments__attempts',
                           filter=Q(enrollments__attempts__status=Attempt.Status.NEEDS_REVIEW), distinct=True),
         ).order_by('name')
-        return render(request, 'people/teach_home.html', {'cohorts': cohorts})
+        return render(request, 'people/teach_home.html', {'cohorts': cohorts, 'one_on_one': teachable_one_on_one(request.user)})
 
 
 class CohortConsoleView(TeacherRequiredMixin, View):
